@@ -14,3 +14,6 @@ logs/
 
 # api_harness raw 响应/run 日志(可能含 sign 等敏感 query 回显;不入 git)
 api_harness/results/
+
+# 本地生成的 HTML 看板(每次跑 dashboard 都会刷新,留为本地产物)
+api_harness/_DASHBOARD.html

@@ -102,20 +102,80 @@ def _render_counts(counts: dict[str, int]) -> str:
     return " ".join(pieces) or '<em class="muted">(no cases)</em>'
 
 
+def _render_tags(label: str, tags: list[dict]) -> str:
+    """渲染一组照片的关键标签(ai_scene_tags / salient_objects / scene 等)。"""
+    if not tags:
+        return ""
+    items = []
+    for t in tags:
+        parts = [f'<strong class="pid">{html.escape(str(t.get("id", "")))}</strong>']
+        if t.get("ai_scene_tags"):
+            tags_html = " ".join(f'<span class="t t-ai">{html.escape(str(x))}</span>' for x in t["ai_scene_tags"])
+            parts.append(f'<span class="tag-group">ai_scene: {tags_html}</span>')
+        if t.get("salient_objects"):
+            objs_html = " ".join(f'<span class="t t-obj">{html.escape(str(x))}</span>' for x in t["salient_objects"])
+            parts.append(f'<span class="tag-group">subj: {objs_html}</span>')
+        meta_bits = []
+        for k in ("scene", "activity", "event_hint"):
+            v = t.get(k)
+            if v and v not in ("unknown", "daily_record"):
+                meta_bits.append(f'{k}=<em>{html.escape(str(v))}</em>')
+        if t.get("sensitive", "none") != "none":
+            meta_bits.append(f'<span class="sens">sensitive={html.escape(str(t["sensitive"]))}</span>')
+        if t.get("anchors"):
+            meta_bits.append(f'anchors=[{html.escape(", ".join(t["anchors"]))}]')
+        if meta_bits:
+            parts.append(f'<span class="tag-meta">{" · ".join(meta_bits)}</span>')
+        if t.get("narrative"):
+            parts.append(f'<span class="narr">「{html.escape(t["narrative"])}」</span>')
+        items.append(f'<li>{" ".join(parts)}</li>')
+    return f'<div class="tags-block"><div class="tags-label">{label}</div><ul class="tags">{"".join(items)}</ul></div>'
+
+
+def _render_reasons(actual: dict) -> str:
+    """渲染后端判断归因(decisionRemark / truthTablePattern / per-photo tier desc 等)。"""
+    r = actual.get("reasons") or {}
+    rows = []
+    if r.get("top_decision"):
+        rows.append(f'<div><span class="rl">顶层判断</span><code>{html.escape(str(r["top_decision"]))}</code></div>')
+    if r.get("top_remark"):
+        rows.append(f'<div><span class="rl">decisionRemark</span><code class="rmk">{html.escape(str(r["top_remark"]))}</code></div>')
+    if r.get("per_photo_patterns"):
+        codes = " ".join(f'<code class="pat">{html.escape(str(p))}</code>' for p in r["per_photo_patterns"])
+        rows.append(f'<div><span class="rl">真值表 pattern</span>{codes}</div>')
+    if r.get("per_photo_tier_descs"):
+        rows.append(f'<div><span class="rl">每张决策档</span>' + " · ".join(f'<em>{html.escape(str(d))}</em>' for d in r["per_photo_tier_descs"]) + '</div>')
+    if r.get("per_photo_final_descs"):
+        rows.append(f'<div><span class="rl">每张最终结果</span>' + " · ".join(f'<em>{html.escape(str(d))}</em>' for d in r["per_photo_final_descs"]) + '</div>')
+    if r.get("next_flow"):
+        rows.append(f'<div><span class="rl">下一步流转</span><code>{html.escape(str(r["next_flow"]))}</code></div>')
+    if not rows:
+        return ""
+    return f'<div class="reasons"><div class="reasons-h">🧠 后端为什么这么判</div>{"".join(rows)}</div>'
+
+
 def _render_case(r: dict) -> str:
     v = r.get("verdict", "?")
     color, _ = _VERDICT_COLOR.get(v, ("#1f2937", "?"))
     expected = r.get("expected") or {}
     actual = r.get("actual") or {}
     missing = r.get("missing_themes") or []
-    biz_ids = (r.get("raw") or {}).get("biz_ids") or []
-    setup_albums = ((r.get("raw") or {}).get("setup") or {}).get("albums") or []
-    teardown_errs = (r.get("raw") or {}).get("teardown_errors") or []
+    raw = r.get("raw") or {}
+    biz_ids = raw.get("biz_ids") or []
+    setup_albums = (raw.get("setup") or {}).get("albums") or []
+    teardown_errs = raw.get("teardown_errors") or []
+    trigger_tags = raw.get("trigger_tags") or []
+    setup_tags = raw.get("setup_tags") or []
+    pool_tags = raw.get("pool_tags") or []
 
     def _pair(label: str, exp: Any, act: Any) -> str:
-        ee = html.escape(str(exp) if exp is not None else "—")
-        aa = html.escape(str(act) if act is not None else "—")
-        same = "" if exp == act else " diff"
+        # 空字符串 / [] / None 在显示层都归 "—",避免 "—" vs "" 误标 diff
+        exp_empty = exp in (None, "", [], {})
+        act_empty = act in (None, "", [], {})
+        ee = "—" if exp_empty else html.escape(str(exp))
+        aa = "—" if act_empty else html.escape(str(act))
+        # 期望无断言(—)就别标 diff(对照只有用户给了期望才有意义)
+        same = "" if (exp_empty or exp == act) else " diff"
         return (f'<tr><th>{html.escape(label)}</th>'
                 f'<td class="exp">{ee}</td>'
                 f'<td class="act{same}">{aa}</td></tr>')
@@ -141,6 +201,15 @@ def _render_case(r: dict) -> str:
     if teardown_errs:
         extra.append(f'<div class="extra warn">⚠ teardown 报错:{html.escape(" / ".join(teardown_errs))}</div>')
 
+    # 输入侧标签:setup seed(L2.5)/ pool(cascade)在前,trigger 在后(对照"被比较的两边")
+    inputs_html = ""
+    if setup_tags:
+        inputs_html += _render_tags("📦 setup seed(建老相册的种子)", setup_tags)
+    if pool_tags:
+        inputs_html += _render_tags("🏊 sediment pool(沉淀池候选)", pool_tags)
+    if trigger_tags:
+        inputs_html += _render_tags("🎯 trigger(本次触发上传)", trigger_tags)
+
     return f"""
 <article class="case" style="--vc:{color};">
   <header class="case-h">
@@ -148,6 +217,8 @@ def _render_case(r: dict) -> str:
     <strong>{html.escape(r.get("case_id", "?"))}</strong>
   </header>
   <div class="detail">{html.escape(r.get("detail", ""))}</div>
+  {inputs_html}
+  {_render_reasons(actual)}
   <table class="pair"><thead><tr><th></th><th>期望(产品意图)</th><th>后端实际</th></tr></thead>
     <tbody>{"".join(rows)}</tbody></table>
   {"".join(extra)}
@@ -193,6 +264,31 @@ _HEADER = """<!DOCTYPE html>
   .extra code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 3px; font-size: 11px; }
   .extra.warn { color: #fbbf24; }
   .extra.muted { color: var(--muted); }
+  /* 输入侧标签块 */
+  .tags-block { margin: 8px 0; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 4px; border-left: 2px solid rgba(255,255,255,0.15); }
+  .tags-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+  ul.tags { list-style: none; padding: 0; margin: 0; font-size: 12px; }
+  ul.tags > li { padding: 3px 0; border-top: 1px solid rgba(255,255,255,0.04); display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+  ul.tags > li:first-child { border-top: none; }
+  ul.tags .pid { color: #fbbf24; min-width: 40px; }
+  ul.tags .tag-group { color: var(--muted); }
+  ul.tags .t { display: inline-block; padding: 1px 6px; border-radius: 3px; margin: 0 1px; font-size: 11px; }
+  ul.tags .t-ai { background: rgba(96, 165, 250, 0.18); color: #93c5fd; }   /* 蓝:主题 */
+  ul.tags .t-obj { background: rgba(167, 139, 250, 0.18); color: #c4b5fd; } /* 紫:主体 */
+  ul.tags .tag-meta { color: var(--muted); font-size: 11px; }
+  ul.tags .tag-meta em { color: #cbd5e1; font-style: normal; }
+  ul.tags .sens { color: #f87171; font-weight: 600; }
+  ul.tags .narr { color: var(--muted); font-style: italic; font-size: 11px; }
+  /* 后端归因块 */
+  .reasons { margin: 8px 0; padding: 8px 12px; background: rgba(251, 191, 36, 0.06);
+             border-left: 3px solid #f59e0b; border-radius: 4px; font-size: 12px; }
+  .reasons-h { font-weight: 600; color: #fbbf24; margin-bottom: 4px; font-size: 12px; }
+  .reasons > div { padding: 2px 0; }
+  .reasons .rl { display: inline-block; min-width: 130px; color: var(--muted); font-size: 11px; }
+  .reasons code { background: rgba(255,255,255,0.07); padding: 1px 6px; border-radius: 3px; font-size: 11px; }
+  .reasons code.rmk { color: #fcd34d; }
+  .reasons code.pat { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }   /* 真值表 pattern 红:醒目 */
+  .reasons em { font-style: normal; color: #cbd5e1; }
   footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
   footer p { margin: 4px 0; }
 </style>

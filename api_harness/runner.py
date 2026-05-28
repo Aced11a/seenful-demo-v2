@@ -82,6 +82,7 @@ def load_cases(filter_substr: str | None = None) -> list[dict]:
 # ── 提取后端关键字段 ───────────────────────────────────────────────
 
 def _extract_actual(body: dict[str, Any]) -> dict[str, Any]:
+    """从后端响应抽出关键字段;`reasons` 块聚焦"为什么这么判"(用于 HTML 归因区)。"""
     photos = body.get("photos") or []
     album_ids = sorted({p.get("miniAlbumId") for p in photos if p.get("miniAlbumId")})
     return {
@@ -90,12 +91,26 @@ def _extract_actual(body: dict[str, Any]) -> dict[str, Any]:
         "displayDecisionCode": body.get("displayDecisionCode"),
         "displayDecisionDesc": body.get("displayDecisionDesc"),
         "nextFlowCode": body.get("nextFlowCode"),
+        "nextFlowDesc": body.get("nextFlowDesc"),
         "decisionRemark": body.get("decisionRemark"),
+        "decisionSource": body.get("decisionSource"),
         "album_ids": album_ids,
         "photo_count": len(photos),
         "final_result_codes": [p.get("finalResultCode") for p in photos],
+        "final_result_descs": [p.get("finalResultDesc") for p in photos],
         "decision_tier_codes": [p.get("decisionTierCode") for p in photos],
+        "decision_tier_descs": [p.get("decisionTierDesc") for p in photos],
         "association_strengths": [p.get("associationStrength") for p in photos],
+        "truth_table_patterns": [p.get("truthTablePattern") for p in photos],
+        # 为 HTML 归因专门聚一份(per-photo reason 也合进来去重)──
+        "reasons": {
+            "top_decision": body.get("displayDecisionDesc") or body.get("displayDecisionCode"),
+            "top_remark": body.get("decisionRemark"),
+            "next_flow": body.get("nextFlowDesc") or body.get("nextFlowCode"),
+            "per_photo_patterns": sorted({p.get("truthTablePattern") for p in photos if p.get("truthTablePattern")}),
+            "per_photo_tier_descs": sorted({p.get("decisionTierDesc") for p in photos if p.get("decisionTierDesc")}),
+            "per_photo_final_descs": sorted({p.get("finalResultDesc") for p in photos if p.get("finalResultDesc") and p.get("finalResultDesc") != "初始化"}),
+        },
     }
 
 
@@ -173,10 +188,28 @@ def compare(case: dict, actual: dict, code_map: dict) -> tuple[str, str]:
 
 # ── 执行单场景(§3 loop)────────────────────────────────────────────
 
-def _photos_for(persona_id: str, ids: list[str], theme_map, sample, missing) -> list[dict]:
+def _summarize_tags(spec: dict, theme_map: dict[str, str]) -> dict[str, Any]:
+    """每张照片关键标签压缩成 dashboard 易读结构(ai_scene_tags 中文 + subjects + 场景/活动/事件)。"""
+    return {
+        "id": spec.get("id"),
+        "ai_scene_tags": adapter.translate_themes(spec.get("theme", []), theme_map),   # 不传 missing,避免双计
+        "salient_objects": list(spec.get("subjects", [])),
+        "scene": spec.get("scene"),
+        "activity": spec.get("activity"),
+        "event_hint": spec.get("event"),
+        "sensitive": spec.get("sensitive", "none"),
+        "anchors": list(spec.get("anchors", [])),
+        "narrative": (spec.get("narrative") or "")[:50],
+    }
+
+
+def _photos_and_tags(persona_id: str, ids: list[str], theme_map, sample, missing) -> tuple[list[dict], list[dict]]:
+    """同时构建 API#1 提交载荷 + dashboard 标签摘要,共用同一组 spec。"""
     pool = adapter.load_persona_photos(persona_id)
     specs = [pool[i] for i in ids]
-    return adapter.build_photo_list(specs, theme_map=theme_map, sample=sample, missing=missing)
+    photos = adapter.build_photo_list(specs, theme_map=theme_map, sample=sample, missing=missing)
+    tags = [_summarize_tags(s, theme_map) for s in specs]
+    return photos, tags
 
 
 def run_case(case: dict, *, theme_map, sample, code_map, do_teardown: bool = True) -> CaseResult:
@@ -202,7 +235,8 @@ def run_case(case: dict, *, theme_map, sample, code_map, do_teardown: bool = Tru
             seeds = setup.get("seed_photos") or []
             if not seeds:
                 res.verdict = "BLOCKED"; res.detail = "L2.5 缺 seed_photos"; return res
-            seed_photos = _photos_for(persona, seeds, theme_map, sample, missing)
+            seed_photos, seed_tags = _photos_and_tags(persona, seeds, theme_map, sample, missing)
+            res.raw["setup_tags"] = seed_tags                              # ← 输入侧标签可视化
             sub = client.submit(seed_photos)
             if sub.mock_biz_id is not None:
                 biz_ids.append(sub.mock_biz_id)
@@ -216,7 +250,8 @@ def run_case(case: dict, *, theme_map, sample, code_map, do_teardown: bool = Tru
         elif path == "cascade":
             pool_ids = setup.get("pool_photos") or []
             if pool_ids:
-                pool_photos = _photos_for(persona, pool_ids, theme_map, sample, missing)
+                pool_photos, pool_tags = _photos_and_tags(persona, pool_ids, theme_map, sample, missing)
+                res.raw["pool_tags"] = pool_tags                            # ← 输入侧标签可视化
                 sub = client.submit(pool_photos)
                 if sub.mock_biz_id is not None:
                     biz_ids.append(sub.mock_biz_id)
@@ -225,7 +260,8 @@ def run_case(case: dict, *, theme_map, sample, code_map, do_teardown: bool = Tru
 
         # ── trigger ──
         trig_ids = (case.get("trigger") or {}).get("photos") or []
-        trig_photos = _photos_for(persona, trig_ids, theme_map, sample, missing)
+        trig_photos, trig_tags = _photos_and_tags(persona, trig_ids, theme_map, sample, missing)
+        res.raw["trigger_tags"] = trig_tags                                  # ← 输入侧标签可视化
         sub = client.submit(trig_photos)
         if sub.mock_biz_id is None:
             res.verdict = "error"; res.detail = "trigger 未拿到 mockBizId"; res.raw["trigger"] = sub.raw

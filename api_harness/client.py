@@ -131,9 +131,21 @@ _PENDING_STATUS = {"PROCESSING", "INIT", "PENDING", "RUNNING", "QUEUED", ""}
 
 
 def _default_done(body: dict[str, Any]) -> bool:
-    """完成判据:status 非空且不在 PENDING 集合即视为终态。
+    """完成判据:status 终态,或决策字段已填(后端 5-28 实测:即使 status 仍是 PROCESSING,
+    displayDecisionCode / photos[].decisionTierCode 也可能已是终值 → 早终止避免等无效信号)。
 
-    实测(2026-05-27):PROCESSING=处理中;NOT_FOUND=已删除(终态);终态决策值待观测。
+    实测(2026-05-27):PROCESSING=处理中;NOT_FOUND=已删除(终态)。
+    实测(2026-05-28):L2.5/cascade 完成时 status 常残留 PROCESSING,但 photos[].decisionTierCode
+                    已是 no_merge/auto_merge 等终值 → 用决策字段判终止更可靠。
     """
     status = str(body.get("status", "")).upper()
-    return bool(status) and status not in _PENDING_STATUS
+    if status and status not in _PENDING_STATUS:
+        return True
+    # L2 终态信号:顶层 displayDecisionCode 已填
+    if body.get("displayDecisionCode"):
+        return True
+    # L2.5 / cascade 终态信号:任一 photo decisionTierCode 已填
+    for p in body.get("photos") or []:
+        if p.get("decisionTierCode"):
+            return True
+    return False
