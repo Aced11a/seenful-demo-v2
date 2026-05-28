@@ -1,0 +1,18 @@
+name: FP.B7 location buffer 边界 5 张 (3 张紧簇 + 2 张 9.9km 远)
+persona: laoqi_zhang
+behavior_pattern: FP.B7
+test_path: L2
+product_intent: 3 张苏州城南公园 + 2 张苏州城北 9.9km 外. 应判 multi-cluster (B 系列) 而非 stretched A1.7 (跨城合并)
+input:
+  new_photos:
+  - fz37
+  - fz38
+  - fz39
+  - fz40
+  - fz41
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 B7. ADR-0010 eps_outer=1500m, 9.9km 应破 cluster 算 multi (K_outer=2). PCA 形状校正 + transit 降档. 验证算法不把"3 紧簇 + 2 远点"误判为 stretched single-cluster.
+test_type: robustness

@@ -1,0 +1,30 @@
+# 路径 B anchor 维度配置 (ADR-0014)
+# 参考: docs/20_path_b_anchor.md
+# ⚠ 修改前先改 docs/20 + docs/07 §anchor
+# ⚠ src/ 不允许硬编码以下数值
+
+path_b_anchor:
+
+  # ─── 主字段 (meaning_anchors, v0.3 修订 OQ-008 §8e) ──
+  primary_field: "meaning_anchors"
+  primary_hit_rate_threshold: 0.5
+  min_hit_count: 2
+
+  primary_band_thresholds:
+    strong_coverage: 1.0               # AN.1 strong
+    medium_high: 0.8                   # AN.2 medium-high (触发次字段)
+    medium_low: 0.5                    # AN.3 medium-low (触发次字段)
+    # < 0.5 OR no anchor_clusters → AN.4 weak
+
+  # ─── 次字段升降档 (object_anchors, 仅 AN.2/AN.3 触发) ─
+  secondary_field: "object_anchors"
+  secondary_band_adjust:
+    boost_threshold: 0.667
+    demote_threshold: 0.333
+
+  # ─── 复用 ADR-0008 配置 ──────────────────────────────
+  # cluster.merge_similarity = 0.75
+  # embedder = MockEmbedder
+
+  fallback:
+    n_valid_min: 1                     # N_valid ≤ 此值 → AN.5 none

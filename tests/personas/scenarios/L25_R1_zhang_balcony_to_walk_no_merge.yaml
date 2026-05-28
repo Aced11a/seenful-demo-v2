@@ -1,0 +1,15 @@
+name: 'L2.5 #R1 张奶奶阳台花 vs 公园散步相册 → no_merge (跨场景反例)'
+persona: laoqi_zhang
+behavior_pattern: L25.R1
+test_path: L2.5
+test_type: red_line
+product_intent: 阳台花 vs 公园相册 主题不同地点不同, 基础反例 no_merge
+input:
+  new_photo: z01
+  old_albums:
+  - weekly_park_walk_album
+expected:
+  decision_tier: ['ask_user', 'no_merge']
+invariants:
+- INV-01
+notes: 基础跨场景反例

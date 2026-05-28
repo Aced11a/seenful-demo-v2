@@ -1,0 +1,45 @@
+# 兜底回扫配置 (路径 C)
+# 参考: docs/05_truth_table_backfill.md + docs/23_pipeline_cascade_backfill.md (ADR-0017)
+# 主真值表沿用 config/truth_table_main.yaml, 本文件只放兜底专用参数
+
+# 时间窗口
+lookback_days: 30
+
+# 粗筛 (Step 2)
+coarse_filter:
+  gps_max_km: 1.0
+  theme_jaccard_min: 0.5
+  match_event_hint: true
+  max_candidates: 5                # 老入口 run_backfill_path 用, 兼容老 scenarios
+
+# 召回上限 (PRD §3.10.5)
+max_recall_photos: 4
+
+# ─── ADR-0017 新增: 维度强度总分排序权重 (Ace 2026-05-19) ───
+# cascade_backfill_single 粗筛后按 score 排序选 top max_recall_photos
+# score = (gps<1km ? 1.0 : 0) + (theme>0.5 ? 1.0 : 0) + (event 一致 ? 0.5 : 0)
+# event 权重 0.5 因为 event_hint 封闭 10 枚举易重复, 降权
+priority_weight:
+  gps: 1.0
+  theme: 1.0
+  event: 0.5
+
+# ─── ADR-0017 新增: 候选池上限 (PRD §3.10.10) ───
+# demo v0.1 截最近 50 张, 真实数据 200+ 才换激进粗筛
+candidate_pool:
+  max_sediment_size: 50
+
+# 封顶规则 (Step 4) — PRD §3.10.5 strong-only, ADR-0017 完全保留
+caps:
+  # CAP-01: 主真值表 bounds_max 必须达到 strong (即命中 A 系或 B7/8/9)
+  require_truth_table_bounds_max_strong: true
+  # CAP-02: LLM proposed_strength 必须 strong
+  require_llm_proposed_strength_strong: true
+  # CAP-03: 召回沉淀单图最少数量 (+ 1 张新照片 >= 3 张门槛, PRD §3.10.4)
+  min_recalled_photos: 2
+
+# LLM 系统 prompt 追加
+llm_system_prompt_addendum: |
+  这是兜底回扫场景, 沉淀单图可能跨多天甚至数周。
+  只在你确定它们属于同一段连续记忆时给 strong,
+  其他情况都给 medium 或更低。

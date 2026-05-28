@@ -1,0 +1,18 @@
+name: FP.B4 outing 凑 strong 5 张 (跨 5 城市 + event 都 outing + activity 都 walk)
+persona: laoqi_zhang
+behavior_pattern: FP.B4
+test_path: L2
+product_intent: 5 张跨 5 城市 (上海/杭州/深圳/北京/广州), 但全标 event=outing + activity=walk → E.1 strong 通过, 应假阳成集
+input:
+  new_photos:
+  - fz24
+  - fz25
+  - fz26
+  - fz27
+  - fz28
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 B4. outing 颗粒度太粗 — "全员 outing" 不代表"同一次出游". 5 张跨 5 城绝不该合集. 但 E.1 算法不验"事件单一性", 应假阳成 strong → A3 单独成集. 红线 #5 违反.
+test_type: red_line

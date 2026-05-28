@@ -1,0 +1,28 @@
+name: B.1 李叔叔兵马俑爆拍 12 张 + 顺路加油 1 张
+persona: laoli_youke
+behavior_pattern: B.1
+test_path: L2
+product_intent: 顺路那张加油站不应被错聚到兵马俑集, 应单独沉淀
+input:
+  new_photos:
+  - l13
+  - l14
+  - l15
+  - l16
+  - l17
+  - l18
+  - l19
+  - l20
+  - l21
+  - l22
+  - l23
+  - l24
+  - l25
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: 12 张兵马俑应成集 + 1 张加油站应被识别为长尾
+test_type: robustness

@@ -1,0 +1,15 @@
+name: 'L2.5 #R2 张奶奶公园晨练 vs 公园相册 → auto_merge (基础正例)'
+persona: laoqi_zhang
+behavior_pattern: L25.R2
+test_path: L2.5
+test_type: red_line
+product_intent: 同地点同主题, 基础正例应 auto_merge
+input:
+  new_photo: z07
+  old_albums:
+  - weekly_park_walk_album
+expected:
+  decision_tier: ['auto_merge', 'ask_user']
+invariants:
+- INV-01
+notes: 基础正例

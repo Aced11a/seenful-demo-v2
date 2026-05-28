@@ -1,0 +1,15 @@
+name: L2.5 李叔叔西湖细颗粒标签 vs 西湖相册 (语义簇兜底)
+persona: laoli_youke
+behavior_pattern: L25.th_granularity
+test_path: L2.5
+test_type: robustness
+product_intent: 细颗粒标签 [断桥, 行人, 风筝] 字面 Jaccard=0 但 ADR-0008 语义簇识别 → 应 auto_merge
+input:
+  new_photo: l99
+  old_albums:
+  - past_xihu_album
+expected:
+  decision_tier: [auto_merge, ask_user]
+invariants:
+- INV-01
+notes: 语义簇 vs 字面 Jaccard

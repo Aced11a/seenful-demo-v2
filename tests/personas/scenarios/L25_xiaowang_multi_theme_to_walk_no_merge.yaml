@@ -1,0 +1,14 @@
+name: L2.5 小王单图多 strong theme (万圣节+生日) vs 张奶奶公园相册 → no_merge
+persona: xiaowang
+behavior_pattern: L25.multi_theme
+test_path: L2.5
+test_type: robustness
+product_intent: 单图多 strong theme + 跨场景, 算法主导 theme 选择
+input:
+  new_photo: w60
+  old_albums: []
+expected:
+  decision_tier: ['ask_user', 'no_merge']
+invariants:
+- INV-01
+notes: 多主题 + 空 album 列表

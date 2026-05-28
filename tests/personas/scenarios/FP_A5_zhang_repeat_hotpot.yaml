@@ -1,0 +1,18 @@
+name: FP.A5 张奶奶 5 次同火锅店聚餐 5 张 (跨 4 个月独立 5 次)
+persona: laoqi_zhang
+behavior_pattern: FP.A5
+test_path: L2
+product_intent: 5 次独立聚餐每次 1 张, **不应**合并为 1 本"火锅相册" (每次应是独立小集, 后期年度合集再聚)
+input:
+  new_photos:
+  - fz09
+  - fz10
+  - fz11
+  - fz12
+  - fz13
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 A5. location strong (同 GPS) + event strong (meal+meal) + theme strong (hotpot 系) + time T3 跨多月. 跨多次聚餐合并为单事件相册违反"事件单一性". 现行 batch 模式不分时段拆.
+test_type: robustness

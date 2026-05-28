@@ -1,0 +1,17 @@
+# Geocoder 配置 (ADR-0016)
+# 参考: docs/22_location_geocoder.md
+# ⚠ 修改前先改 docs/22
+
+geocoder:
+  # ─── provider 切换 (mock / amap) ────────────────────
+  # 默认 mock 安全 (无 API key 也跑); 想真接入改 "amap" + 设 AMAP_API_KEY env var
+  provider: "mock"
+
+  amap:
+    api_key_env: "AMAP_API_KEY"       # 环境变量名 (key 不进 git)
+    endpoint: "https://restapi.amap.com/v3/geocode/regeo"
+    timeout_seconds: 5
+    # cache 由代码维护 (进程内 dict, demo 阶段不需 TTL)
+
+  mock:
+    # MockGeocoder 内部硬编码 dict, 此段保留供未来扩展

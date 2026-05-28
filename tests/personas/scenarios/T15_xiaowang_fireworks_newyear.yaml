@@ -1,0 +1,21 @@
+name: '#15 小王跨年烟花 8 张 10 分钟跨业务日'
+persona: xiaowang
+behavior_pattern: T.15
+test_path: L2
+product_intent: '跨年烟花: 10 分钟内 8 张同主题, 跨 04:00 业务日 vs 跨自然日 (00:00) 不同语义, ADR-0011 自然日归属'
+input:
+  new_photos:
+  - w41
+  - w42
+  - w43
+  - w44
+  - w45
+  - w46
+  - w47
+  - w48
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: time 极密 (T1.5 events>5) + 跨 00:00 (但 < 04:00 同业务日)
+test_type: robustness

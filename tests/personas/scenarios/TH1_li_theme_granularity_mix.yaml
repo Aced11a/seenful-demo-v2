@@ -1,0 +1,17 @@
+name: TH.1 李叔叔 theme 颗粒度混合 4 张 (粗/中/细/感官)
+persona: laoli_youke
+behavior_pattern: TH.1
+test_path: L2
+product_intent: 同地点不同颗粒度 theme 标签, 字面 Jaccard ≈ 0 但 ADR-0008 语义簇应识别都是'西湖'
+input:
+  new_photos:
+  - l98
+  - l99
+  - l100
+  - l101
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 测语义簇能力 vs 字面 Jaccard 死穴
+test_type: robustness

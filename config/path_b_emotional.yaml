@@ -1,0 +1,38 @@
+# 路径 B emotional 维度配置 (ADR-0015)
+# 参考: docs/21_path_b_emotional.md
+# ⚠ 修改前先改 docs/21 + docs/07 §emotional
+# ⚠ src/ 不允许硬编码以下数值
+
+path_b_emotional:
+
+  # ─── 主字段 (单值开放, 跟 theme/anchor 字段类型不同) ──
+  primary_field: "emotional_tone"
+  primary_hit_rate_threshold: 0.5
+  min_hit_count: 2
+
+  primary_band_thresholds:
+    strong_coverage: 1.0
+    medium_high: 0.8
+    medium_low: 0.5
+    # < 0.5 OR no cluster → EM.4 weak
+
+  # ─── Neutral baseline (emotional 独有, EM.0 preempt) ──
+  # 主簇代表词 = "neutral" → 强制 cap weak (即使 coverage=1.0)
+  neutral_baseline:
+    enabled: true
+    cap_band: "weak"
+    neutral_token: "neutral"
+
+  # ─── 红线诊断 (推断情绪黑名单, 落痕不阻断) ───────────
+  # LLM 违反红线 §1 输出 happy/sad 等, 仍进 distribution, 仅落痕
+  # detected_inferred_emotion_count > 0 → 上游 LLM/监控可知 prompt 失效
+  inferred_emotion_blacklist:
+    chinese: [开心, 悲伤, 忧郁, 焦虑, 孤独, 抑郁, 愤怒, 恐惧, 高兴, 难过]
+    english: [happy, sad, depressed, anxious, lonely, melancholic, joyful, angry, fearful]
+
+  # ─── 复用 ADR-0008 配置 ──────────────────────────────
+  # cluster.merge_similarity = 0.75 (见 config/theme_aggregation.yaml)
+  # embedder = MockEmbedder (待 OQ-018 切 Qwen3-Embedding-0.6B)
+
+  fallback:
+    n_valid_min: 1                    # N_valid ≤ 此值 → EM.5 none

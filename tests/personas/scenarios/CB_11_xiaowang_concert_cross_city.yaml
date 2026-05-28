@@ -1,0 +1,17 @@
+name: 'CB.11 小王演唱会单张 vs 跨城池 → no_backfill'
+persona: xiaowang
+behavior_pattern: CB.11
+test_path: cascade
+test_type: robustness
+product_intent: 演唱会单张 vs 池里无相关, no_backfill
+input:
+  new_photo: w01
+  sediment_pool:
+  - w17
+  - w18
+  - w19
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-01
+notes: 跨主题

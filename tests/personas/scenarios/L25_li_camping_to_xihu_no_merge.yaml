@@ -1,0 +1,15 @@
+name: L2.5 李叔叔露营 vs 西湖相册 → no_merge (跨主题)
+persona: laoli_youke
+behavior_pattern: L25.cross_theme
+test_path: L2.5
+test_type: robustness
+product_intent: 露营 vs 西湖游, 跨主题应 no_merge
+input:
+  new_photo: l93
+  old_albums:
+  - past_xihu_album
+expected:
+  decision_tier: ['ask_user', 'no_merge']
+invariants:
+- INV-01
+notes: 跨主题反例

@@ -1,0 +1,19 @@
+name: '#13 小王 Citywalk 低密度均匀 6 张'
+persona: xiaowang
+behavior_pattern: T.13
+test_path: L2
+product_intent: 低密度均匀分布 (5km 6 张, 平均 800m/张), DBSCAN 死穴, theme=citywalk 一致兜底
+input:
+  new_photos:
+  - w35
+  - w36
+  - w37
+  - w38
+  - w39
+  - w40
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 无密集簇 + theme 一致, 看算法靠 theme 还是放弃
+test_type: robustness

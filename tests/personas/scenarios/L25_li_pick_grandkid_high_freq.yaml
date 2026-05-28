@@ -1,0 +1,17 @@
+name: L2.5 李叔叔接娃 vs 接娃相册 → auto/ask (高频地点)
+persona: laoli_youke
+behavior_pattern: L25.high_freq
+test_path: L2.5
+test_type: robustness
+product_intent: 高频地点 + 日常 routine, HR-POST-03 边界
+input:
+  new_photo: l35
+  old_albums:
+  - pick_grandkid_album
+expected:
+  decision_tier: auto_merge
+  acceptable:
+    decision_tier: ask_user
+invariants:
+- INV-03
+notes: 高频地点降档 ask_user 或不降

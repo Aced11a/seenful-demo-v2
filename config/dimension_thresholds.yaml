@@ -1,0 +1,165 @@
+# 7 维度分档阈值 + 信号分组
+# 参考: docs/07_dimension_thresholds.md (v1.3.2)
+# ⚠️ 修改前先改 docs/07_dimension_thresholds.md
+# ⚠️ 算法替换 ADR: decisions/0004-feature-assembler-revision.md
+
+# ─── 真值表用的分档阈值 (顶层, 保持不变) ─────────────────────────
+dimension_bands:
+  location:
+    strong: 0.85
+    medium: 0.65
+    weak: 0.40
+  theme:
+    strong: 0.75
+    medium: 0.55
+    weak: 0.30
+  event:
+    strong: 0.70
+    medium: 0.50
+    weak: 0.30
+  people:
+    strong: 0.70   # P0 score 上限 0.65, 实质永远到不了 strong
+    medium: 0.50
+    weak: 0.30
+  time:
+    strong: 0.85
+    medium: 0.65
+    weak: 0.40
+  anchor:
+    strong: 0.70
+    medium: 0.50
+    weak: 0.30
+  emotional:
+    strong: 0.75
+    medium: 0.55
+    weak: 0.30
+
+main_signals: [location, theme, event, people]
+amplifier_signals: [time]
+auxiliary_signals: [anchor, emotional]
+
+# location 高频地点降一档
+high_frequency_place_downgrade: true
+
+# people P0 score 上限
+people_score_cap_p0: 0.65
+
+# ─── v0.1 老 location_distance_bands / time_span_bands ────────
+# 仅为 v0.1 demo 代码 (src/features/location.py / time.py) 服务,
+# 下一轮算法实现完成后会被 v1.3.2 配置完全替换.
+location_distance_bands:
+  - { max_km: 0.2, score: 1.00 }
+  - { max_km: 0.5, score: 0.90 }
+  - { max_km: 1.0, score: 0.75 }
+  - { max_km: 2.0, score: 0.55 }
+  - { max_km: 5.0, score: 0.35 }
+  - { max_km: 99999.0, score: 0.15 }
+
+time_span_bands:
+  - { max_hours: 0.5, score: 1.00 }
+  - { max_hours: 2.0, score: 0.90 }
+  - { max_hours: 12.0, score: 0.70 }
+  - { max_hours: 48.0, score: 0.50 }
+  - { max_hours: 999999.0, score: 0.20 }
+
+time_fallback_multiplier: 0.5
+
+# ═════════════════════════════════════════════════════════════════
+# v1.3.2 新方案配置 (待下一轮代码实现读取, 当前 v0.1 demo 不使用)
+# 参考: docs/07_dimension_thresholds.md §3.2.1-new / §3.2.2-new / §3.2.3-new
+# ═════════════════════════════════════════════════════════════════
+
+# ─── §3.2.1 · location_score 地理上下文阈值 (米) ─────────────
+# ⚠ ADR-0010/0016 后此段为"死配置" (path B location 走 ADR-0010 直出 band 不读;
+#   path A DBCH 走 config/place_anchor.yaml::band_thresholds_4tier ADR-0016 4 档).
+# 保留是为兼容老接口, 不再有代码消费.
+# ⚠ ADR-0007 已 superseded by ADR-0016, 4 档实施完成.
+location_distance_thresholds_unified:
+  strong_m: 500
+  medium_m: 1000
+  weak_m: 2000
+
+# 距离 → score 映射 (在选定的阈值表内)
+# distance < strong_m → 1.00, < medium_m → 0.75, < weak_m → 0.45, else 0.15
+location_score_brackets:
+  - { boundary: strong_m, score: 1.00 }
+  - { boundary: medium_m, score: 0.75 }
+  - { boundary: weak_m,   score: 0.45 }
+  - { boundary: __over__, score: 0.15 }
+
+# ─── COMMENTED-OUT in v0.1 (ADR-0007, 待 OQ-017 触发回切) ───
+# POI 城市判定 (OQ-010) 接入后取消注释 + 删 location_distance_thresholds_unified 段.
+#
+# location_distance_thresholds:
+#   home_city:
+#     strong_m: 100
+#     medium_m: 300
+#     weak_m: 800
+#   cross_province:
+#     strong_m: 500
+#     medium_m: 1500
+#     weak_m: 5000
+#   cross_country:
+#     strong_m: 2000
+#     medium_m: 5000
+#     weak_m: 15000
+
+# home_city 判定 (来自 user_profile)
+home_city_detection:
+  lookback_days: 30
+  min_uploads_required: 10
+  fallback_context: "home_city"     # 数据不足 → 保守按 home_city 表
+  # 行政区粒度
+  granularity: "city"               # province | city | district
+
+# ─── §3.2.2 · time_score 双峰检测 + 旅游放宽 ──────────────────
+time_score:
+  bimodal_detection:
+    median_gap_ratio_threshold: 0.3   # 中位间隔 / 总跨度
+    min_photos_for_bimodal: 4
+    bimodal_score: 0.30                # 命中双峰后的固定分
+
+  # 常驻档 (home_city / mixed / unknown)
+  home_city_brackets:
+    - { max_hours: 0.5,   score: 1.00 }
+    - { max_hours: 2,     score: 0.90 }
+    - { max_hours: 12,    score: 0.70 }
+    - { max_hours: 48,    score: 0.50 }
+    - { max_hours: null,  score: 0.20 }
+
+  # 旅游档 (cross_province / cross_country)
+  travel_brackets:
+    - { max_hours: 72,    score: 1.00 }   # 3 天
+    - { max_hours: 168,   score: 0.85 }   # 1 周
+    - { max_hours: 336,   score: 0.60 }   # 2 周
+    - { max_hours: null,  score: 0.30 }
+
+  # 全 upload_time_fallback 时降权倍数 (与老 time_fallback_multiplier 一致)
+  fallback_confidence_multiplier: 0.5
+
+# ─── §3.2.3 · theme_overlap embedding 配置 ────────────────────
+theme_overlap:
+  embedding_model: "BGE-M3"           # 可切 "Qwen3-Embedding-0.6B"
+  embedding_dim: 1024
+
+  # tag 级 embedding 缓存策略
+  cache:
+    backend: "memory"                  # memory | redis
+    ttl_seconds: null                  # null = 永不过期 (推荐, tag 语义稳定)
+
+  # 三路融合权重 (总和应为 1.0)
+  fusion_weights:
+    tag_embedding: 0.6
+    main_subjects_jaccard: 0.3
+    scene_type_consistency: 0.1
+
+  # tag_embedding_similarity → band
+  similarity_to_band:
+    strong: 0.85
+    medium: 0.70
+    weak: 0.55
+
+  # 降级策略: embedding 服务不可用时回退到老 Jaccard
+  fallback:
+    on_service_error: "jaccard"
+    log_field: "theme_score_degraded"

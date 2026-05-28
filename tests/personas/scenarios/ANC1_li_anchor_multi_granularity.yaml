@@ -1,0 +1,19 @@
+name: ANC.1 李叔叔 anchor 多颗粒 3 张 (meaning 抽象 + object 具体)
+persona: laoli_youke
+behavior_pattern: ANC.1
+test_path: L2
+product_intent: meaning_anchors 4+ 个抽象 + main_subjects 4+ 个具体, ADR-0014 双层 anchor
+  边界
+input:
+  new_photos:
+  - l102
+  - l103
+  - l104
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: anchor 多颗粒强叠加, 看真值表 A 系 (anchor 不主导但加强)
+test_type: robustness

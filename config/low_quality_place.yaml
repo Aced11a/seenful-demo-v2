@@ -1,0 +1,53 @@
+# 高频低质量地点判定配置 (ADR-0006)
+# 参考: docs/13_low_quality_place_detection.md
+# 修改前先改 docs/13 (CLAUDE.md 第 1 条硬约束)
+
+# ─── 频率门槛 (硬约束, Plan A/B 共用) ────────────────
+# 任一不过, is_low_quality 直接 False (新用户保护 + 频率信号)
+frequency:
+  radius_m: 500              # cluster 内 GPS 半径 (信息性, 算法主要用 cluster.member 已经聚类)
+  lookback_days: 30          # 回看窗口
+  min_distinct_days: 5       # 30 天内 ≥ 5 个不同日子拍摄
+  new_user_min_age_days: 30  # 账户注册时长门槛
+  new_user_min_photos: 10    # user_history 数据量门槛
+
+# ─── Plan A · L1 双 density (默认启用) ────────────────
+plan_a:
+  enabled: true
+  baseline_percentile: 25         # 用户照片 meaning/aesthetic density 的 25 分位
+  min_samples_for_baseline: 25    # user_history L1 照片 < 25 → baseline=None, 不判低质量
+  baseline_refresh_days: 30       # baseline 多久重算 (v0.2 缓存用, v0.1 stub 每次重算)
+  double_low_ratio: 0.5           # 簇内 ≥ 50% 照片"双 density 都低于 baseline" → 低质量
+
+# ─── Plan B · POI + NIMA + 行为信号 (默认关闭, 留 stub) ─
+plan_b:
+  enabled: false   # Plan A 失败 (OQ-015) 后切 true; 当前 stub
+
+  poi:
+    non_routine_categories:
+      - park
+      - beach
+      - museum
+      - amusement_park
+      - aquarium
+      - zoo
+      - stadium
+      - movie_theater
+      - restaurant
+      - cafe
+      - bar
+      - hotel
+      - library
+      - cinema
+    non_routine_ratio_threshold: 0.3
+    likely_routine_ratio_threshold: 0.6
+
+  nima:
+    sigma_threshold: 1.0       # E < mean - 1σ 直接判低质量
+    min_clean_samples: 30      # baseline 去污染最少干净样本
+
+  behavior:
+    overnight_span_hours: 7    # B 信号: 当日 7h 跨度
+    min_long_span_days: 3
+    weekday_ratio_threshold: 0.8   # C 信号: ≥ 80% 在工作日
+    indoor_ratio_threshold: 0.7    # D 信号: ≥ 70% 在 home/indoor scene_type

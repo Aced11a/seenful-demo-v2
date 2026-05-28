@@ -1,0 +1,171 @@
+# 主真值表 (路径 B)
+# 参考: docs/03_truth_table_main.md
+# 顺序: A → B (B7 > B8 > B9 > B1-B6) → G → C → D → E → F1
+# bounds 用 "light" 表示弱档 (与 BandLevel 的 "weak" 同义)
+
+# 优先级序列 (代码按此顺序遍历,首条命中即返回)
+priority_order:
+  - A1
+  - A2
+  - A3
+  - A4
+  - B7
+  - B8
+  - B9
+  - B1
+  - B2
+  - B3
+  - B4
+  - B5
+  - B6
+  - G1
+  - G2
+  - G3
+  - G4
+  - C1
+  - C2
+  - C3
+  - C4
+  - D1
+  - D2
+  - D3
+  - D4
+  - E1
+  - E2
+  - F1
+
+# 每条规则的触发条件 (DSL 形式) + bounds
+# DSL:
+#   eq(band, level)           band == level
+#   ge(band, level)           band >= level (strong > medium > weak > none)
+#   count_main(level, ">=", N)   count of main signals at <given level> in {==/>=/<=} N
+#   count_aux(level, ">=", N)    same for auxiliary signals
+#   count_main_eq_below(weak, ">=", N)  count of main at exactly weak
+
+rules:
+  # ─── A 系列 · 单主载体 = 强 ─────────────────────────
+  - id: A1
+    when: "eq(location, strong)"
+    type: location
+    bounds: [medium, strong]
+  - id: A2
+    when: "eq(theme, strong)"
+    type: thematic
+    bounds: [medium, strong]
+  - id: A3
+    when: "eq(event, strong)"
+    type: event
+    bounds: [medium, strong]
+  - id: A4
+    when: "eq(people, strong)"
+    type: people
+    bounds: [medium, strong]
+
+  # ─── B 系列 · 多主载体 = 中 ─────────────────────────
+  - id: B7
+    when: "eq(location, medium) and eq(theme, medium) and eq(event, medium)"
+    type: mixed
+    bounds: [strong, strong]
+  - id: B8
+    when: "count_main_eq(medium, '>=', 3)"
+    type: mixed
+    bounds: [strong, strong]
+  - id: B9
+    when: "count_main_eq(medium, '>=', 4)"
+    type: mixed
+    bounds: [strong, strong]
+  - id: B1
+    when: "eq(location, medium) and eq(theme, medium)"
+    type: mixed
+    bounds: [medium, strong]
+  - id: B2
+    when: "eq(location, medium) and eq(event, medium)"
+    type: event
+    bounds: [medium, strong]
+  - id: B3
+    when: "eq(location, medium) and eq(people, medium)"
+    type: people
+    bounds: [medium, strong]
+  - id: B4
+    when: "eq(theme, medium) and eq(event, medium)"
+    type: event
+    bounds: [medium, strong]
+  - id: B5
+    when: "eq(theme, medium) and eq(people, medium)"
+    type: people
+    bounds: [medium, strong]
+  - id: B6
+    when: "eq(event, medium) and eq(people, medium)"
+    type: event
+    bounds: [medium, strong]
+
+  # ─── G 系列 · time 放大器 ───────────────────────────
+  - id: G1
+    when: "eq(time, strong) and any_main_ge(medium)"
+    type: temporal
+    bounds: [medium, strong]
+    notes: "v0.1 mock 阶段 evidence_quality < 2, 实际上限 medium (见 OQ-001)"
+  - id: G2
+    when: "eq(time, strong) and any_main_eq(weak) and count_aux_ge(medium, '>=', 1)"
+    type: temporal
+    bounds: [light, medium]
+  - id: G3
+    when: "eq(time, medium) and any_main_eq(medium)"
+    type: temporal
+    bounds: [medium, strong]
+  - id: G4
+    when: "eq(time, medium) and any_main_eq(weak) and count_aux_ge(medium, '>=', 1)"
+    type: temporal
+    bounds: [light, light]
+
+  # ─── C 系列 · 单主载体=中 + 辅证 ≥ 中×1 ────────────
+  - id: C1
+    when: "eq(location, medium) and count_aux_ge(medium, '>=', 1)"
+    type: location
+    bounds: [light, medium]
+  - id: C2
+    when: "eq(theme, medium) and count_aux_ge(medium, '>=', 1)"
+    type: thematic
+    bounds: [light, medium]
+  - id: C3
+    when: "eq(event, medium) and count_aux_ge(medium, '>=', 1)"
+    type: event
+    bounds: [light, medium]
+  - id: C4
+    when: "eq(people, medium) and count_aux_ge(medium, '>=', 1)"
+    type: people
+    bounds: [light, medium]
+
+  # ─── D 系列 · 单主载体=中 (其他全弱/无) ────────────
+  - id: D1
+    when: "eq(location, medium) and other_mains_weak_or_none(location)"
+    type: location
+    bounds: [light, light]
+  - id: D2
+    when: "eq(theme, medium) and other_mains_weak_or_none(theme)"
+    type: thematic
+    bounds: [light, light]
+  - id: D3
+    when: "eq(event, medium) and other_mains_weak_or_none(event)"
+    type: event
+    bounds: [light, light]
+  - id: D4
+    when: "eq(people, medium) and other_mains_weak_or_none(people)"
+    type: people
+    bounds: [light, light]
+
+  # ─── E 系列 · 多主载体=弱 + 辅证 ─────────────────────
+  - id: E1
+    when: "count_main_eq(weak, '>=', 2) and count_aux_ge(medium, '>=', 2)"
+    type: mixed
+    bounds: [light, medium]
+  - id: E2
+    when: "count_main_eq(weak, '>=', 2) and count_aux_ge(medium, '>=', 1)"
+    type: mixed
+    bounds: [light, light]
+
+  # ─── F1 · 兜底 ─────────────────────────────────────
+  - id: F1
+    when: "true"
+    type: weak
+    bounds: [none, none]

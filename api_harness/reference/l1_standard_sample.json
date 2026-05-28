@@ -1,0 +1,52 @@
+{
+  "recognition_confidence": 0.98,
+  "tqs": 8.2,
+  "aqs": 7.5,
+  "face_count": 0,
+  "face_area_ratio": 0,
+  "best_expression": 4,
+  "eyes_open": false,
+  "ai_scene_tags": ["食物", "室内"],
+  "ai_composition_tags": ["俯拍", "特写"],
+  "scene_category": 4,
+  "salient_objects": ["小笼包", "蒸笼", "筷子"],
+  "color_mood": "暖调",
+  "best_photo_reason": "主体突出/生活气息浓",
+  "face_expression_detail": "",
+  "content_brief": "刚出笼的热包子看着就香",
+  "ai_review_text": "这笼包子热气腾腾，适合配句暖胃的日签",
+  "suggested_improvement": "我不大改，保留这口热乎劲儿",
+  "individual_title": "刚出笼的小笼包",
+  "title_tone": "plain",
+  "individual_understanding": "筷子夹起的那只包子皮薄透亮，隐约能看见里面的汤汁和肉馅。蒸笼里还冒着热气，这种刚出锅、迫不及待要尝一口的瞬间，最有生活的烟火气，看着心里就踏实。",
+  "meaning_anchors": ["热气腾腾", "烟火气", "趁热吃", "家常味"],
+  "meaning_density": 0.6,
+  "aesthetic_density": 0.5,
+  "emotional_tone": "满足",
+  "ocr_text": "",
+  "semantic_facts": {
+    "main_subjects": ["小笼包", "蒸笼", "筷子"],
+    "scene_type": "indoor",
+    "activity": "meal",
+    "people_presence": "none",
+    "object_anchors": ["木质蒸笼", "深色筷子", "白色大理石桌面"],
+    "place_category": "restaurant",
+    "event_hint": "meal"
+  },
+  "generation_affordance": {
+    "daily_sign_score": 0.85,
+    "album_cover_score": 0.4,
+    "huabao_role": "none",
+    "nine_grid_role": "support_panel",
+    "recommended_styles": ["food_diary", "daily_life"]
+  },
+  "safety_flags": {
+    "is_damaged": "false",
+    "is_duplicate": "false",
+    "is_document_sensitive": "false",
+    "is_child_related": "false",
+    "is_medical_related": "false",
+    "is_grief_related": "false",
+    "sensitive_level": "none"
+  }
+}

@@ -1,0 +1,19 @@
+name: 'CB.04 李叔西湖感官标签 vs 4 颗粒度池 → 语义簇召回'
+persona: laoli_youke
+behavior_pattern: CB.04
+test_path: cascade
+test_type: robustness
+product_intent: 新照感官颗粒 vs 池里粗/中/细 + 一张感官, 字面 Jaccard 低, 语义簇兜底
+input:
+  new_photo: l101
+  sediment_pool:
+  - l98
+  - l99
+  - l100
+  - l51
+expected:
+  decision_tier: create_new_album
+  min_recalled: 2
+invariants:
+- INV-01
+notes: 语义簇兜底测试

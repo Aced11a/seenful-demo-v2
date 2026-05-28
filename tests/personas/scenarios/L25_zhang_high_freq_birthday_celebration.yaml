@@ -1,0 +1,15 @@
+name: L2.5 张奶奶生日 (家高频) vs 孙女相册 → auto_merge (强 event 不降)
+persona: laoqi_zhang
+behavior_pattern: L25.high_freq_strong_event
+test_path: L2.5
+test_type: robustness
+product_intent: 高频地点 + 强 celebration, HR-POST-03 不过度抑制
+input:
+  new_photo: z38
+  old_albums:
+  - granddaughter_album
+expected:
+  decision_tier: ['auto_merge', 'ask_user']
+invariants:
+- INV-03
+notes: 高频地点边界

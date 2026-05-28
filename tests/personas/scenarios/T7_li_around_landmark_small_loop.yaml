@@ -1,0 +1,19 @@
+name: '#7 李叔叔绕东方明珠小环 6 张'
+persona: laoli_youke
+behavior_pattern: T.7
+test_path: L2
+product_intent: '绕主体小环: GPS 形成小范围闭环, 主体一致 (theme strong) 应压过 location 小波动'
+input:
+  new_photos:
+  - l65
+  - l66
+  - l67
+  - l68
+  - l69
+  - l70
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: theme=oriental_pearl 是 strong, 即使 GPS 在 100m 范围有小环
+test_type: robustness

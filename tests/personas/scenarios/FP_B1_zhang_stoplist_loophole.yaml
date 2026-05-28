@@ -1,0 +1,18 @@
+name: FP.B1 张奶奶 stoplist 不全 5 张 (跨地跨主题, subjects 全 stuff/thing/item)
+persona: laoqi_zhang
+behavior_pattern: FP.B1
+test_path: L2
+product_intent: 5 张完全不同场景 (上海/杭州/香港/北京/广州), 但 main_subjects 全是 stoplist 外的泛词 [stuff, item, thing]. 应识别假阳, 不应 subject 升 strong
+input:
+  new_photos:
+  - fz14
+  - fz15
+  - fz16
+  - fz17
+  - fz18
+expected:
+  display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: docs/28 B1. ADR-0023 subject MAX-OR 加了 stoplist [person, food, ...], 但没收 [stuff, thing, item]. 5 张 subject 一致 cov=1.0 → TH.1 strong → MAX 取 strong → final 假阳. 期望暴露 stoplist 不全, 提 OQ-032 扩词集.
+test_type: red_line

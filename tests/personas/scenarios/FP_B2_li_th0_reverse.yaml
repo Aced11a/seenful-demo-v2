@@ -1,0 +1,19 @@
+name: FP.B2 TH.0 反向利用 (用户故意混 2 主题各 3 张, 凑 theme=medium 进 B 系列)
+persona: laoli_youke
+behavior_pattern: FP.B2
+test_path: L2
+product_intent: 用户故意混 2 个完全不同主题各 3 张 (上海开会 + 苏州游), 让 theme 走 TH.0 medium 而非 weak, 给 B 系列开门票
+input:
+  new_photos:
+  - l60
+  - l61
+  - l62
+  - l63
+  - l64
+  - l65
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 B2 (同 B5_li_business_plus_travel 现实 case). ADR-0022 TH.0 设计是修 B5 单簇假 strong, 但 medium 仍可能进 B 系列 multi-medium 组合. 当前 B 系列要 medium ≥ 2 维, 单 theme medium 不够. 验证设计 trade-off 边界.
+test_type: robustness

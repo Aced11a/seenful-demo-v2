@@ -1,0 +1,16 @@
+name: TH.2 小王单图多 strong theme 3 张 (万圣节+晚宴+生日)
+persona: xiaowang
+behavior_pattern: TH.2
+test_path: L2
+product_intent: 单图 theme 多元素 (≥5 标签), ADR-0013 双层判定能否处理 'theme 多焦点'
+input:
+  new_photos:
+  - w60
+  - w61
+  - w62
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 多 strong theme 共存, 算法选哪个主导
+test_type: robustness

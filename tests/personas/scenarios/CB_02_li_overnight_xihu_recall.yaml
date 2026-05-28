@@ -1,0 +1,19 @@
+name: 'CB.02 李叔西湖跨业务日夜游召回'
+persona: laoli_youke
+behavior_pattern: CB.02
+test_path: cascade
+test_type: robustness
+product_intent: 跨业务日单张 vs 沉淀池同主题, 应召回
+input:
+  new_photo: l05
+  sediment_pool:
+  - l01
+  - l02
+  - l03
+expected:
+  decision_tier: create_new_album
+  min_recalled: 2
+invariants:
+- INV-04
+- INV-05
+notes: 跨业务日召回边界

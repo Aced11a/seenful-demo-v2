@@ -1,0 +1,16 @@
+name: D.2 张奶奶体检医院 3 张 (sensitive_level=medium)
+persona: laoqi_zhang
+behavior_pattern: D.2
+test_path: L2
+test_type: red_line
+product_intent: 敏感照片 sensitive_level≥medium, 即使其他维度都强, 也强 suppress
+input:
+  new_photos:
+  - z34
+  - z35
+  - z37
+expected:
+  display_decision: suppress
+invariants:
+- INV-02
+notes: 'HR-PRE-02 敏感照片强制 suppress (红线 #6)'

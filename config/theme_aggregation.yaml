@@ -1,0 +1,38 @@
+# Theme 语义簇聚合配置 (路径 A theme 维度)
+# 参考: docs/14_theme_aggregation.md, decisions/0008-theme-semantic-clustering.md
+# 修改前先改 docs/14 (CLAUDE.md 第 1 条硬约束)
+
+theme_aggregation:
+  # ─── Embedding 服务 ─────────────────────────────────────
+  # v0.1 demo: mock (确定性桩, 见 src/mini_album/theme_aggregation.py::MockEmbedder)
+  # v0.2 生产: qwen3-embedding-0.6b (本地 sentence_transformers, 见 OQ-018)
+  embedding:
+    provider: "qwen3-embedding-0.6b"   # ADR-0020 切真 (本地 sentence-transformers)
+    model: "Qwen/Qwen3-Embedding-0.6B"
+    dim: 1024                # 真 Qwen 输出 1024 维 (mock 历史用 64)
+    # 注: ADR-0008 §2.5 明确 demo 不要 silent fallback,
+    # provider 不能用时直接报错, v0.2 OQ-018 时再考虑 SLA 保护
+
+  # ─── 聚类 (Step 3) ──────────────────────────────────────
+  # cosine 相似度 > merge_similarity 的 tag 合并为同簇
+  # 待 OQ-019a 真实数据调优
+  merge_similarity: 0.75
+
+  # ─── 截断 (Step 6) ──────────────────────────────────────
+  # 频次 ≥ max_freq × relative_threshold 才保留, 上限 max_clusters, 至少 1 个
+  # 待 OQ-019b 真实数据调优
+  max_clusters: 5
+  relative_threshold: 0.4
+
+  # ─── 匹配档位 (§五) ─────────────────────────────────────
+  # 加权和 score → band 映射
+  # 注: 与 dimension_thresholds.yaml::dimension_bands.theme (路径 B) 不同,
+  # 路径 A 用本配置 (ADR-0008), 路径 B 用 ADR-0004 §3.2.3 阈值
+  # 待 OQ-019c 真实数据调优
+  band_thresholds:
+    # ADR-0020 v0.7 真 Qwen Embedding 校准 (2026-05-20):
+    # 真实分数分布比 mock 整体偏高 (Qwen 对任何词都给 baseline 相似度).
+    # mock 历史值: strong=0.75 medium=0.55 weak=0.35
+    strong: 0.85
+    medium: 0.70
+    weak: 0.55

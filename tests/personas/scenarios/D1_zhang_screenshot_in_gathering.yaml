@@ -1,0 +1,20 @@
+name: D.1 张奶奶聚餐 3 张 + 微信截图 2 张穿插
+persona: laoqi_zhang
+behavior_pattern: D.1
+test_path: L2
+product_intent: 截图应被识别为非记忆型, 不应污染聚餐成集
+input:
+  new_photos:
+  - z08
+  - z16
+  - z28
+  - z30
+  - z33
+expected:
+  display_decision: show_inline_hint
+  acceptable:
+    display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 3 张聚餐 (event=meal) + 2 张 wechat/recipe 截图. 看算法是否过滤截图
+test_type: robustness

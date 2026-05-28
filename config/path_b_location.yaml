@@ -1,0 +1,58 @@
+# 路径 B Location 维度配置 (ADR-0010)
+# 参考: docs/16_path_b_location.md, decisions/0010-path-b-location-dbch-pca-shape.md
+# 修改前先改 docs/16 (CLAUDE.md 第 1 条硬约束)
+# v0.1 阈值是经验值, 调优转 OQ-021 (P0.5 v0.2 真实数据上线后)
+
+path_b_location:
+
+  # ─── Phase 1 · 分级 DBSCAN ──────────────────────────────────
+  # 外层判活动边界, 内层判内部结构 (识别退化形状)
+  dbscan:
+    eps_outer_m: 1500           # 活动区域粒度
+                                # 国内日常游玩可包住步行街/小景区/城市同城多点
+                                # 大景区 (迪士尼/黄石) 不够, 待 OQ-021 §21d / OQ-017 弹性
+    eps_inner_m: 500            # 内部结构粒度
+                                # 用于识别退化形状 (A 2 张 + B 2 张连成线段)
+    min_samples: 2              # DBSCAN 核心点最小邻居数
+
+  # ─── Phase 3 · Step A1 PCA 基础 band 网格 ──────────────────
+  # 按 9 行顺序匹配, 第一条命中即为基础值
+  a1_grid:
+    # 单位 km
+    l_oversized_km: 5.0         # A1.1: L > 5 → none
+    w_oversized_km: 1.5         # A1.2: W > 1.5 且 L > W → none
+    r_oversized: 5.0            # A1.3: R > 5 且 W ≥ 1.5 → none
+    l_compact_km: 0.5           # A1.4: L ≤ 0.5 → strong (紧凑团)
+    l_linear_max_km: 5.0        # A1.5: L ≤ 5 → strong (linear, 配合 W/R/K_inner)
+    w_linear_max_km: 0.5        # A1.5: W < 0.5
+    r_linear_min: 5.0           # A1.5: R > 5
+    l_compact_max_km: 1.5       # A1.6: L ≤ 1.5 + R ≤ 5 → strong
+    r_compact_max: 5.0          # A1.6: R ≤ 5
+    l_stretched_max_km: 3.0     # A1.7: L ≤ 3 + W ≤ 1.5 → medium (stretched)
+    w_stretched_max_km: 1.5     # A1.7: W ≤ 1.5
+    l_extended_max_km: 5.0      # A1.8: 3 < L ≤ 5 + W ≤ 1.5 → medium (extended)
+                                # A1.9 兜底 weak (其他)
+
+  # ─── Phase 3 · Step A2 形状校正 (τ = T/D) ──────────────────
+  # 补救 PCA 对环形 / U 形 / 弯曲线性的失效
+  a2_correction:
+    tortuosity_loop_threshold: 2.0      # A2.1: τ > 2 → 平反到 medium (环形/U 形)
+    l_loop_max_km: 8.0                  # A2.1 兜底: L ≤ 8 才平反 (太大不救)
+    w_loop_max_km: 3.0                  # A2.1 兜底: W ≤ 3 才平反
+    tortuosity_curved_threshold: 1.5    # A2.2: τ > 1.5 且 A1=A1.5 linear strong → 降到 medium
+    # 注意: τ > 4 穿梭降档 ADR-0010 §2.5 明示不做, 不出现于此
+
+  # ─── Phase 3 · Step A3 transit 降档 ─────────────────────────
+  a3_transit:
+    transit_demote_kmh: 30.0    # transit ≥ 30 kmh + 当前 band ∈ {strong, medium} → 降一档
+                                # 30 kmh 是步行/骑行/开车的分界 (步 4 / 骑 15 / 车 30+)
+    min_interval_minutes: 20    # transit 计算最小时间间隔门槛
+                                # 防 GPS 漂移瞬时速度膨胀 (连拍间隔短不计入)
+
+  # ─── 路径 B · K_outer = 2 双簇判定 ────────────────────────
+  path_b_dual:
+    gap_close_km: 0.5           # B.1: gap ≤ 0.5 → strong (步行街 GPS 缺口)
+    gap_walk_max_km: 2.0        # B.2/B.3: gap ≤ 2 (慢游/开车分界由 transit)
+    transit_walk_kmh: 20.0      # B.2: transit < 20 (或 null) → medium
+                                # B.3: transit ≥ 20 → weak
+                                # gap > 2 → B.4 none (跨城)

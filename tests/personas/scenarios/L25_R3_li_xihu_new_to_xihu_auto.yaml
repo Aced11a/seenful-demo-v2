@@ -1,0 +1,15 @@
+name: 'L2.5 #R3 李叔叔西湖新照 (粗颗粒) vs 西湖相册 → auto_merge (基础正例)'
+persona: laoli_youke
+behavior_pattern: L25.R3
+test_path: L2.5
+test_type: red_line
+product_intent: 新西湖照 vs 西湖相册, 同地点同主题, 应 auto_merge (theme 颗粒度粗也能识别)
+input:
+  new_photo: l98
+  old_albums:
+  - past_xihu_album
+expected:
+  decision_tier: ['auto_merge', 'ask_user']
+invariants:
+- INV-01
+notes: 基础正例 + 测语义簇

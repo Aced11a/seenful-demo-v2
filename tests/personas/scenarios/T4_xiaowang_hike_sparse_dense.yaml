@@ -1,0 +1,17 @@
+name: '#4 小王徒步前疏后密 4 张'
+persona: xiaowang
+behavior_pattern: T.4
+test_path: L2
+product_intent: 徒步登山前段稀疏 (2 张) + 山顶密集 (2 张), 时间密度前后差异极大, 前段不应被 sparse 踢掉
+input:
+  new_photos:
+  - w31
+  - w32
+  - w33
+  - w34
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: ADR-0011 time T1 events∈[3,5] 边界, 前疏后密
+test_type: robustness

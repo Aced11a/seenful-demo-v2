@@ -1,0 +1,18 @@
+name: 'CB.01 李叔上海一日游 4 张 (外滩+东方明珠+豫园+新天地 路线召回)'
+persona: laoli_youke
+behavior_pattern: CB.01
+test_path: cascade
+test_type: robustness
+product_intent: 暴走 1 张 vs 池里其他暴走景点, 每点信息密度低
+input:
+  new_photo: l77
+  sediment_pool:
+  - l78
+  - l79
+  - l80
+expected:
+  decision_tier: create_new_album
+  min_recalled: 2
+invariants:
+- INV-01
+notes: 暴走点信息低边界

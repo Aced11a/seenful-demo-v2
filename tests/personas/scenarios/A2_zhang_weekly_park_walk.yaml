@@ -1,0 +1,23 @@
+name: A.2 张奶奶周期性散步 跨 4 周 8 张
+persona: laoqi_zhang
+behavior_pattern: A.2
+test_path: L2
+product_intent: 跨多周同地同主题不应强行聚一集, 应是周期记录
+input:
+  new_photos:
+  - z07
+  - z09
+  - z14
+  - z17
+  - z22
+  - z26
+  - z31
+  - z36
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: 跨 4 周 8 张, time T3 多日 + theme 一致. 看算法是否拢成一集 vs 散沙
+test_type: robustness

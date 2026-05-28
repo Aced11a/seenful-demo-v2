@@ -1,0 +1,14 @@
+name: 'CB.03 李叔度假村单张 vs 空池 → insufficient'
+persona: laoli_youke
+behavior_pattern: CB.03
+test_path: cascade
+test_type: robustness
+product_intent: 度假村单张 vs 空池 → insufficient
+input:
+  new_photo: l87
+  sediment_pool: []
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-04
+notes: 度假村空池

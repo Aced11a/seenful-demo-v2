@@ -1,0 +1,65 @@
+# 路径 B theme 维度配置 (ADR-0013)
+# 参考: docs/19_path_b_theme.md
+# ⚠ 修改前先改 docs/19 + docs/07 §3.2.3
+# ⚠ src/ 不允许硬编码以下数值
+
+path_b_theme:
+
+  # ─── 主字段 (theme_tags) ─────────────────────────────
+  primary_field: "theme_tags"
+  primary_hit_rate_threshold: 0.5     # cluster.hit_rate ≥ 此值 → 主题簇
+  min_hit_count: 2                     # cluster.hit_count ≥ 此值 (修 Case G 边界)
+
+  primary_band_thresholds:
+    strong_coverage: 1.0               # TH.0/TH.1 (覆盖 = 1.0 走 TH.0 多簇 / TH.1 单簇)
+    medium_high: 0.7                   # TH.2 medium-high (ADR-0024: 0.8→0.7, T1 cov=0.75 升档)
+    medium_low: 0.5                    # TH.3 medium-low (触发次字段)
+    # < 0.5 OR no theme_clusters → TH.4 weak
+
+  # ─── ADR-0024 Top-K 主簇 (2026-05-21) ────────────────
+  # 老: hit_rate ≥ primary_hit_rate_threshold (0.5) AND hit_count ≥ min_hit_count
+  # 新: hit_count ≥ min_hit_count → 候选, 取 Top-K by hit_count
+  # 修 C8 复合场景: 8 张里 3 主题 hit=3,2,2, 老 cov=0 → 新 cov=0.625
+  top_k_clusters: 3
+
+  # ─── TH.0 多并列主簇判定 (ADR-0022, 2026-05-20) ──────
+  # primary_cluster_count >= 此值 AND coverage = 1.0 → TH.0 medium (mixed)
+  # 修 B5 误判: 上海开会 + 苏州游 100% 覆盖但属 2 个并列主题, 不应判 strong thematic
+  th0_min_cluster_count: 2
+
+  # ─── 次字段升降档 (main_subjects, 仅 TH.2/TH.3 触发) ─
+  secondary_field: "main_subjects"
+  secondary_band_adjust:
+    boost_threshold: 0.667             # secondary ≥ 2/3 → 升 strong
+    demote_threshold: 0.333            # secondary < 1/3 → 降 weak
+    # [1/3, 2/3) 中间 → 不动 medium
+
+  # ─── 复用 ADR-0008 配置 ──────────────────────────────
+  # cluster.merge_similarity = 0.75 (cosine 阈值, 见 config/theme_aggregation.yaml)
+  # embedder = MockEmbedder (待 OQ-018 切 Qwen3-Embedding-0.6B)
+
+  fallback:
+    n_valid_min: 1                     # N_valid ≤ 此值 → TH.5 none
+
+  # ─── ADR-0023 subject single-layer + MAX-OR (2026-05-20) ─
+  # Phase 4: subject 字段 single-layer 跑 (5 行 TH.1~TH.5, **不启 TH.0**)
+  # Phase 5: 主簇任一成员命中 stoplist → subject_band cap 至 medium
+  # Phase 6: final_band = max(theme_band, subject_band), 同档取 theme
+  # 修 A6 牡丹 30 天 case: theme 词散 weak, subject 稳 strong → 取 strong
+  subject_stopword_blocklist:
+    - person
+    - people
+    - food
+    - car
+    - vehicle
+    - table
+    - building
+    - animal
+    - object
+    - thing
+    - item
+    - room
+    - 人
+    - 人们
+    - 物品
+    - 东西

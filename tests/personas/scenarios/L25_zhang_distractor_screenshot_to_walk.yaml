@@ -1,0 +1,15 @@
+name: L2.5 张奶奶截图干扰 vs 公园相册 → no_merge
+persona: laoqi_zhang
+behavior_pattern: L25.distractor
+test_path: L2.5
+test_type: robustness
+product_intent: 截图非记忆型干扰, 应 no_merge
+input:
+  new_photo: z30
+  old_albums:
+  - weekly_park_walk_album
+expected:
+  decision_tier: ['auto_merge', 'ask_user']
+invariants:
+- INV-01
+notes: 干扰反例

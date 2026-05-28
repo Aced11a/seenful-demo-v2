@@ -1,0 +1,17 @@
+name: L2.5 李叔叔多 anchor 照 vs 西湖相册 (anchor 颗粒度边界)
+persona: laoli_youke
+behavior_pattern: L25.multi_anchor
+test_path: L2.5
+test_type: robustness
+product_intent: 新照含 4 个 meaning_anchor + 5 个 object, 同地点应 auto_merge / ask_user
+input:
+  new_photo: l102
+  old_albums:
+  - past_xihu_album
+expected:
+  decision_tier: auto_merge
+  acceptable:
+    decision_tier: ask_user
+invariants:
+- INV-01
+notes: anchor 多颗粒边界, 同地 GPS

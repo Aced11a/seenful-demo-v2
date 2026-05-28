@@ -1,0 +1,21 @@
+name: 'CB.05 张奶奶阳台单张 vs 沉淀池 (阳台花) → create_new_album'
+persona: laoqi_zhang
+behavior_pattern: CB.05
+test_path: cascade
+test_type: red_line
+product_intent: 'cascade 基础正例: 新照跟池里 4 张同主题, 应 create_new_album'
+input:
+  new_photo: z32
+  sediment_pool:
+  - z01
+  - z03
+  - z06
+  - z08
+expected:
+  decision_tier: create_new_album
+invariants:
+- INV-01
+- INV-04
+- INV-05
+- INV-06
+notes: 基础正例

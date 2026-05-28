@@ -1,0 +1,21 @@
+name: B.5 李叔叔上海开会 + 苏州周末 6 张 (event 切换)
+persona: laoli_youke
+behavior_pattern: B.5
+test_path: L2
+product_intent: 工作 + 旅游 mix, 不应混成单一相册 (event 维度需要拆)
+input:
+  new_photos:
+  - l07
+  - l08
+  - l09
+  - l10
+  - l11
+  - l12
+expected:
+  display_decision: suppress
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: 3 张 work + 3 张 outing, event 分布异质
+test_type: robustness

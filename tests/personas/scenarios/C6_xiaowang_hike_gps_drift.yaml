@@ -1,0 +1,20 @@
+name: C.6 小王山区徒步 GPS 漂移 ±150m 5 张
+persona: xiaowang
+behavior_pattern: C.6
+test_path: L2
+product_intent: GPS 漂移大但 theme 一致 (hike), 不应因 GPS 散沙就放弃成集
+input:
+  new_photos:
+  - w17
+  - w18
+  - w19
+  - w20
+  - w21
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: GPS 飘 ±150m, eps_inner=500m 边界. 看 theme/event 是否兜底
+test_type: robustness

@@ -1,0 +1,16 @@
+name: L2.5 张奶奶餐厅周年庆 (event 多信号冲突) vs 孙女相册
+persona: laoqi_zhang
+behavior_pattern: L25.event_conflict
+test_path: L2.5
+test_type: robustness
+product_intent: event=celebration + activity=meal + scene=restaurant 多信号冲突时, primary
+  event 主导决策
+input:
+  new_photo: z44
+  old_albums:
+  - granddaughter_album
+expected:
+  decision_tier: ask_user
+invariants:
+- INV-01
+notes: 多信号冲突边界

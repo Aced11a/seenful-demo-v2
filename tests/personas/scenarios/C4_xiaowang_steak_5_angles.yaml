@@ -1,0 +1,20 @@
+name: C.4 小王餐厅一道菜 5 角度 60 秒
+persona: xiaowang
+behavior_pattern: C.4
+test_path: L2
+product_intent: 同一道牛排 5 角度近相同照, 不应被 K_outer 散沙误判 + 不应升 burst strong
+input:
+  new_photos:
+  - w22
+  - w23
+  - w24
+  - w25
+  - w26
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: 同 GPS 同 event 60 秒, theme 高度同质. 看算法是否聚成 / 散沙
+test_type: robustness

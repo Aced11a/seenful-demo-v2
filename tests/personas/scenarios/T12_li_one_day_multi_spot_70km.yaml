@@ -1,0 +1,19 @@
+name: '#12 李叔叔一日游 故宫+长城+鸟巢 6 张跨 70km'
+persona: laoli_youke
+behavior_pattern: T.12
+test_path: L2
+product_intent: '分散多点一日游: 3 个景点跨 70km, time 跨 10 小时, 应识别为同一行程或拆 3 集'
+input:
+  new_photos:
+  - l71
+  - l72
+  - l73
+  - l74
+  - l75
+  - l76
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 跨 70km, 点间长途移动. 嵌套容器问题, 现 demo 没实现父 POI
+test_type: robustness

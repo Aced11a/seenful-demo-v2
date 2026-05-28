@@ -1,0 +1,17 @@
+name: 'CB.13 小王截图多 strong theme vs 沉淀池 (任何) → 看决定'
+persona: xiaowang
+behavior_pattern: CB.13
+test_path: cascade
+test_type: robustness
+product_intent: 单图含万圣节+晚宴+生日多 theme vs 池里无相关, 算法主导 theme 选择
+input:
+  new_photo: w60
+  sediment_pool:
+  - w35
+  - w49
+  - w50
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-01
+notes: 多主题 + 跨

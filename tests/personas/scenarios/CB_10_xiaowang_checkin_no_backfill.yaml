@@ -1,0 +1,18 @@
+name: 'CB.10 小王网红打卡单张 vs 跨主题池 → 看决定'
+persona: xiaowang
+behavior_pattern: CB.10
+test_path: cascade
+test_type: robustness
+product_intent: 网红打卡单张 vs 池里其他网红点, 每点 1 张, 跨城
+input:
+  new_photo: w49
+  sediment_pool:
+  - w50
+  - w51
+  - w52
+  - w53
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-01
+notes: 跨城网红打卡

@@ -1,0 +1,32 @@
+# 路径 B event 维度配置 (ADR-0012)
+# 参考: docs/18_path_b_event.md
+# ⚠ 修改前先改 docs/18_path_b_event.md + docs/07_dimension_thresholds.md §3.2.4
+# ⚠ 不允许 src/ 硬编码任何下列数值
+
+path_b_event:
+
+  # ─── event 内聚度阈值 (基于 event_primary_share, 分母为 N) ──
+  # 唯一进 strong 的通道是 E.1 (event=1.0 + activity ≥ 2/3 双重)
+  band_thresholds:
+    strong_share: 1.0              # E.1 阈值, 设计原则不可调 (全员一致才 strong)
+    medium_dominant_share: 0.8     # E.3 边界 (0.8 ≤ < 1.0 → medium)
+    medium_mixed_share: 0.6        # E.4 边界 (0.6 ≤ < 0.8 → medium)
+    weak_scattered_share: 0.4      # E.5 边界 (0.4 ≤ < 0.6 → weak)
+    # < 0.4 + N_valid ≥ 2 → E.6 fragmented weak
+
+  # ─── activity 二次门槛 (ADR-0012 v0.2 核心, E.1 strong 必需) ──
+  # event=1.0 时, activity_primary_share ≥ 此值才 strong, 否则降 medium
+  activity_gate:
+    min_consensus_ratio: 0.667     # 2/3 ≈ 0.667, Ace 2026-05-18 选定
+
+  # ─── activity 兜底 (E.7, N_valid ≤ 1 时启用) ───────────
+  activity_fallback:
+    min_consensus_ratio: 0.667     # 共享 gate 阈值
+    max_valid_event_for_fallback: 1  # N_valid ≤ 1 才启用
+    fallback_band: "weak"          # 兜底永不超过 weak (event 信号宽容上限)
+
+  # ─── 引用 ADR-0009 配置 (不复制) ────────────────────
+  # aggregate_event 内部仍读 config/event_aggregation.yaml::event_aggregation
+  # primary_threshold = 0.6 (基于 N_valid 的 ratio, 不是 N 基)
+  # secondary_threshold = 0.2
+  # tertiary_min_count = 1

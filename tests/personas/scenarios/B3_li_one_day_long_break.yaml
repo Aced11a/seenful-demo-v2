@@ -1,0 +1,20 @@
+name: B.3 李叔叔同一天中场长停顿 5 张 (上午+午饭休+下午)
+persona: laoli_youke
+behavior_pattern: B.3
+test_path: L2
+product_intent: 2-3 小时午饭间断不应切集, 同一天 outing 应整体成集
+input:
+  new_photos:
+  - l39
+  - l40
+  - l41
+  - l42
+  - l43
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: 9:00 → 13:00 餐 → 17:00, 时间链式切分 gap=120min 边界
+test_type: robustness

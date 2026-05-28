@@ -1,0 +1,17 @@
+name: 'CB.15 张奶奶敏感单张 vs 沉淀池 → no_backfill (HR-PRE)'
+persona: laoqi_zhang
+behavior_pattern: CB.15
+test_path: cascade
+test_type: robustness
+product_intent: 敏感照 sensitive_level=medium, HR-PRE 强制 suppress
+input:
+  new_photo: z34
+  sediment_pool:
+  - z01
+  - z03
+  - z06
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-02
+notes: 敏感照 PRE 阻断

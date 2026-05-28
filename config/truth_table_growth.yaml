@@ -1,0 +1,74 @@
+# 动态生长真值表 (路径 A)
+# 参考: docs/04_truth_table_growth.md
+# 优先级: G-A1 > G-A2 > G-B1 > G-B2 > G-B3 > G-C1 > G-C2 > G-D1 > G-E1 > G-F1
+# 分档复用 dimension_thresholds.yaml (location/theme/event/anchor)
+# DSL 与 truth_table_main.yaml 同 (eq / count_*_eq / ...)
+
+priority_order:
+  - G-A1
+  - G-A2
+  - G-B1
+  - G-B2
+  - G-B3
+  - G-C1
+  - G-C2
+  - G-D1
+  - G-E1
+  - G-F1
+
+rules:
+  # ─── G-A 系列 · location 强 ─────────────────────
+  - id: G-A1
+    when: "eq(location, strong) and (ge(theme, medium) or ge(event, medium) or ge(anchor, medium))"
+    type: location
+    decision_tier: auto_merge
+
+  - id: G-A2
+    when: "eq(location, strong)"
+    type: location
+    decision_tier: ask_user
+
+  # ─── G-B 系列 · 单一主载体 强 (无 location 加持时) ─
+  - id: G-B1
+    when: "eq(theme, strong)"
+    type: thematic
+    decision_tier: auto_merge
+
+  - id: G-B2
+    when: "eq(event, strong)"
+    type: event
+    decision_tier: auto_merge
+
+  - id: G-B3
+    when: "eq(anchor, strong)"
+    type: anchor
+    decision_tier: auto_merge
+
+  # ─── G-C 系列 · location 中 ─────────────────────
+  - id: G-C1
+    when: "eq(location, medium) and (ge(theme, medium) or ge(event, medium))"
+    type: mixed
+    decision_tier: auto_merge
+
+  - id: G-C2
+    when: "eq(location, medium) and eq(anchor, medium)"
+    type: location
+    decision_tier: ask_user
+
+  # ─── G-D 系列 · 单一主载体 中 (其他全弱/无) ──────
+  - id: G-D1
+    when: "any_main_eq(medium) and count_main_eq(medium, '==', 1) and all_other_mains_weak_or_none(medium)"
+    type: mixed
+    decision_tier: ask_user
+
+  # ─── G-E 系列 · 多主载体 弱 + 辅证 ────────────────
+  - id: G-E1
+    when: "count_main_eq(weak, '>=', 2)"
+    type: mixed
+    decision_tier: ask_user
+
+  # ─── G-F1 · 兜底 ─────────────────────────────────
+  - id: G-F1
+    when: "true"
+    type: weak
+    decision_tier: no_merge

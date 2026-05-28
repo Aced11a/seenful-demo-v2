@@ -1,0 +1,16 @@
+name: FP.B5 T1.5 连拍 3 张 (30 min 间隔 events=3 紧邻 → strong)
+persona: laoqi_zhang
+behavior_pattern: FP.B5
+test_path: L2
+product_intent: 3 张连拍同对象不同角度 (兰花 A/B/C), 间隔 30 min. ADR-0011 T1.5 升 strong, 但语义只是"同一场合连拍" 非"3 个事件"
+input:
+  new_photos:
+  - fz29
+  - fz30
+  - fz31
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 B5. ADR-0011 T1.5 修问题④断层升 strong (3 张紧邻). 此 case 验证升档是否过激 — 同场合连拍 vs 3 个独立事件. 现行设计接受边界 (OQ-022).
+test_type: robustness

@@ -1,0 +1,21 @@
+name: B.2 李叔叔跨业务日西湖夜游 6 张 (22:00 → 02:00)
+persona: laoli_youke
+behavior_pattern: B.2
+test_path: L2
+product_intent: 跨 04:00 业务日边界不应切碎, 同一段连续夜游应聚成一集
+input:
+  new_photos:
+  - l01
+  - l02
+  - l03
+  - l04
+  - l05
+  - l06
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: time 跨 4 小时, 跨 04:00 边界. 看 ADR-0011 业务日识别
+test_type: robustness

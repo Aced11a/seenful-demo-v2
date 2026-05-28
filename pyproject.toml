@@ -1,0 +1,36 @@
+[project]
+name = "seenful-l2-engine"
+version = "0.1.0"
+description = "Seenful L2 Association Engine — prototype"
+requires-python = ">=3.11"
+authors = [{ name = "Ace" }]
+dependencies = [
+    "pydantic>=2.6",
+    "pyyaml>=6.0",
+    "structlog>=24.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+]
+llm = [
+    "anthropic>=0.34",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra --strict-markers"
+markers = [
+    "scenario: end-to-end scenario test from yaml",
+]

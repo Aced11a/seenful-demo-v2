@@ -1,0 +1,25 @@
+{
+  "description": "期望(产品意图词,来自旧 persona expected)↔ 后端 API#2 码值 桥接。SPEC §6 比对层级。Step1 实测仅确认成集=show_mini_album;其余码值跑 P1 pilot 时观测补齐。某期望词映射为空 [] = 尚未观测到对应后端码 → runner 判 'unmapped'(待补,非 mismatch,见 TEST_PLAN §7.3)。",
+  "display_decision": {
+    "show_mini_album": ["show_mini_album"],
+    "create_mini_album": ["show_mini_album"],
+    "suppress": ["suppress"],
+    "ask_user": [],
+    "no_merge": [],
+    "insufficient": [],
+    "create_new_album": []
+  },
+  "decision_tier": {
+    "auto_merge": ["auto_merge"],
+    "ask_user": ["ask_user"],
+    "no_merge": ["no_merge"],
+    "create_new_album": ["create_new_album"]
+  },
+  "_observed_2026_05_27": {
+    "displayDecisionCode": {"show_mini_album": "创建记忆影集(成集)"},
+    "nextFlowCode": {"l2_5": "L2.5"},
+    "finalResultCode": {"init": 0, "create_mini_album": 2},
+    "route": {"L2": "L2 主路径"},
+    "decisionRemark": "真值表 pattern(如 policy_final_A2)"
+  }
+}

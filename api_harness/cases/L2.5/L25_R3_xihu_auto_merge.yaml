@@ -1,0 +1,29 @@
+# pilot · L2.5 路径 · 李叔叔西湖新照 vs 西湖相册 → auto_merge
+# 溯源: tests/personas/scenarios/L25_R3_li_xihu_new_to_xihu_auto.yaml
+# 产品意图: 新西湖照(粗颗粒中文标签)vs 已有 lake 主题老相册,应 auto_merge 或至少 ask_user
+# 选作 L2.5 pilot 的理由: 主题颗粒度差(seed 细颗粒英文 lake + trigger 粗颗粒中文湖水),
+#   验"翻译表 + 后端语义簇能不能跨颗粒匹配"——L2.5 最典型的判定面。
+id: li_L25_xihu_auto_merge
+source_scenario: L25_R3_li_xihu_new_to_xihu_auto.yaml
+persona: laoli_youke
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos: [l01, l02, l04, l05, l06]   # 5 张 lake/bridge 主题(l03 tea_house 不齐, 排除)
+  setup_rationale: |
+    past_xihu_album 指纹 theme_clusters=[lake/travel/bridge];
+    从 lake_overnight 组(l01-l06)挑 lake/bridge 主题强的 5 张作 seed:
+      l01 lake/north_shore, l02 lake/music_fountain, l04 lake/midnight_walk,
+      l05 duanqiao(bridge)/moonlight, l06 lake/dawn_haze
+    跳过 l03(tea_house/midnight, 无 lake 直接词) → 让 seed 主题集中,先确保建集成功。
+    ⚠ 疑点: seed 里的非 lake token 都被翻译表覆盖,但 backend embedding 是否把这些
+       中文当成"湖区"语义簇,未知 → 不能成集则 BLOCKED, 算 setup 失败。
+trigger:
+  photos: [l98]                            # 单张新照,中文粗颗粒[湖水, 春日, 自然]
+expected:
+  decision_tier: [auto_merge, ask_user]    # 多值期望(沿用原 expected, CLAUDE 第4条不松)
+invariants: [INV-01]
+notes: |
+  原场景: ADR-0025 后用通用景观词建集, 测语义簇 + 中英 + 粗细颗粒交叉。
+  本台子约束: 无 GPS, place_anchor 在 backend 那侧只能靠主题驱动;若后端 L2.5 需 GPS 才能匹配
+  老相册 anchor → 该场景标 BLOCKED(setup 建集 OK 但 trigger 找不到老相册), 留观测.

@@ -1,0 +1,18 @@
+name: D.9 张奶奶家生日 6 张 (高频地点 + 强 celebration 不应被过度抑制)
+persona: laoqi_zhang
+behavior_pattern: D.9
+test_path: L2
+product_intent: 家 (高频) 办生日 (强 event), HR-POST-03 不应过度抑制 → 应该成集
+input:
+  new_photos:
+  - z38
+  - z39
+  - z40
+  - z41
+  - z42
+  - z43
+expected:
+  display_decision: show_mini_album
+invariants: []
+notes: 高频地点 + event=celebration strong. HR-POST-03 边界, 真生日应成集
+test_type: robustness

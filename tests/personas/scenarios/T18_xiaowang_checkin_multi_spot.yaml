@@ -1,0 +1,18 @@
+name: '#18 小王网红打卡跨城 5 个点 5 张'
+persona: xiaowang
+behavior_pattern: T.18
+test_path: L2
+product_intent: 跨城网红打卡 5 个点各 1 张, 跨 5km, 每点信息密度低, 应识别为 city checkin 而非分散沉淀
+input:
+  new_photos:
+  - w49
+  - w50
+  - w51
+  - w52
+  - w53
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 每点 1 张, theme 各不同, location 跨城. 单点信息密度低 + 点间无关联
+test_type: robustness

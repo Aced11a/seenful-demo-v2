@@ -1,0 +1,15 @@
+name: 'L2.5 张奶奶医院敏感 vs 公园相册 → no_merge (红线 #6)'
+persona: laoqi_zhang
+behavior_pattern: L25.sensitive
+test_path: L2.5
+test_type: red_line
+product_intent: 敏感照片 sensitive_level=medium, 即使其他维度都强, 永远 no_merge (HRG-POST-01)
+input:
+  new_photo: z34
+  old_albums:
+  - weekly_park_walk_album
+expected:
+  decision_tier: ['ask_user', 'no_merge']
+invariants:
+- INV-02
+notes: '红线 #6 基础'

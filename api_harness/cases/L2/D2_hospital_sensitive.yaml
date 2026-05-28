@@ -1,0 +1,16 @@
+# pilot · L2 路径 · 张奶奶体检医院 3 张(sensitive_level=medium)
+# 溯源: tests/personas/scenarios/D2_zhang_hospital_sensitive.yaml
+# 产品意图: 敏感照片 sensitive_level≥medium 即使其他维度都强也强 suppress(红线 #6 / HR-PRE-02)
+# 选作 L2 pilot 的理由: 决策唯一,靠 sensitive_level 驱动,不依赖 theme 翻译质量 → 最干净的整链校准。
+id: zhang_L2_hospital_sensitive
+source_scenario: D2_zhang_hospital_sensitive.yaml
+persona: laoqi_zhang
+path: L2
+verdict: runnable
+setup: {}                         # L2 无前置
+trigger:
+  photos: [z34, z35, z37]         # 整批提交
+expected:
+  display_decision: suppress      # 顶层决策(§6 比对:旧 display_decision → API#2 displayDecisionCode)
+invariants: [INV-02]
+notes: HR-PRE-02 敏感照片强制 suppress(红线 #6)

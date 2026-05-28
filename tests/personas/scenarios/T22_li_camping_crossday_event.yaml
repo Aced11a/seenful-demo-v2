@@ -1,0 +1,19 @@
+name: T.22 李叔叔周末露营跨自然日同事件 6 张
+persona: laoli_youke
+behavior_pattern: T.22
+test_path: L2
+product_intent: 跨多个 04:00 业务日同事件 (4/26 12:00 - 4/27 18:00 连续露营), ADR-0011 T2/T3 多日识别
+input:
+  new_photos:
+  - l92
+  - l93
+  - l94
+  - l95
+  - l96
+  - l97
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 跨 2 个 04:00, 连续时间, theme 一致 (camping)
+test_type: robustness

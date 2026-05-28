@@ -1,0 +1,20 @@
+# Event 三级分层聚合配置 (路径 A event 维度)
+# 参考: docs/15_event_aggregation.md, decisions/0009-event-aggregation.md
+# 修改前先改 docs/15 (CLAUDE.md 第 1 条硬约束)
+# v0.1 阈值是经验值, 调优转 OQ-020 (P0.5 真数据上线后)
+
+event_aggregation:
+  # ─── 三级分层阈值 ─────────────────────────────────────
+  # primary: 占比 ≥ primary_threshold 的 event (有且仅有 1 个)
+  # secondary: 占比 ≥ secondary_threshold (且不是 primary)
+  # tertiary: count ≥ tertiary_min_count (且不达 secondary)
+
+  primary_threshold: 0.6      # 占比 ≥ 60% 为主导
+                              # 0.6 为初值, 避免"刚过半就强匹配"误判
+                              # 调优转 OQ-020 §20a (0.55 / 0.6 / 0.65)
+
+  secondary_threshold: 0.2    # 占比 ≥ 20% 为次主导
+                              # 调优转 OQ-020 §20b
+
+  tertiary_min_count: 1       # 至少出现 1 次为三级 (历史稀少)
+                              # 调优转 OQ-020 §20c (可能改 2, 防 LLM 单次噪点)

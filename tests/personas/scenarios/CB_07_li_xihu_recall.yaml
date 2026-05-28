@@ -1,0 +1,20 @@
+name: 'CB.07 李叔西湖单张 vs 沉淀池 (西湖) → create_new_album'
+persona: laoli_youke
+behavior_pattern: CB.07
+test_path: cascade
+test_type: red_line
+product_intent: 'cascade 跨颗粒度: 新中颗粒 vs 池里粗+细+感官混合, 应召回'
+input:
+  new_photo: l100
+  sediment_pool:
+  - l51
+  - l52
+  - l53
+  - l54
+expected:
+  decision_tier: create_new_album
+invariants:
+- INV-04
+- INV-05
+- INV-06
+notes: 基础正例 + 跨颗粒度

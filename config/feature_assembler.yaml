@@ -1,0 +1,43 @@
+# Feature Assembler 双版本开关 (ADR-0018)
+# 参考: docs/24_feature_assembler_plan_ab.md
+#
+# plan 切换 path B 7 维度算法版本:
+#   - "L2_2.0" (默认): ADR-0010~0015 升级版, 各维度独立算法直出 4 档 band
+#   - "L2_1.0": v1.3 工程规范 §3.2 抄本, score → 阈值表查档
+#
+# 跨版本共享: 真值表 28 条 / HR-PRE / HR-POST / LLM judge / Path A / Path C / 仲裁器
+# 仅 path B 7 维度有版本差异
+
+feature_assembler:
+  plan: "L2_2.0"
+
+  # L2_1.0 专用阈值表 (v1.3 §5.3.5, 仅 plan=L2_1.0 时生效)
+  legacy_thresholds:
+    location:
+      strong: 0.85
+      medium: 0.65
+      weak: 0.40
+    theme:
+      strong: 0.75
+      medium: 0.55
+      weak: 0.30
+    event:
+      strong: 0.70
+      medium: 0.50
+      weak: 0.30
+    people:
+      strong: 0.70
+      medium: 0.50
+      weak: 0.30
+    time:
+      strong: 0.85
+      medium: 0.65
+      weak: 0.40
+    anchor:
+      strong: 0.70
+      medium: 0.50
+      weak: 0.30
+    emotional:
+      strong: 0.75
+      medium: 0.55
+      weak: 0.30

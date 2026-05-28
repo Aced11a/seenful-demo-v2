@@ -1,0 +1,23 @@
+name: '#19 李叔叔暴走 10 景点 高频切换'
+persona: laoli_youke
+behavior_pattern: T.19
+test_path: L2
+product_intent: 一天 10 个景点高频切换, 不应被切成 10 个碎集, 应识别为 city tour 整体
+input:
+  new_photos:
+  - l77
+  - l78
+  - l79
+  - l80
+  - l81
+  - l82
+  - l83
+  - l84
+  - l85
+  - l86
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 高频切换防过度切分, theme=city_tour 一致
+test_type: robustness

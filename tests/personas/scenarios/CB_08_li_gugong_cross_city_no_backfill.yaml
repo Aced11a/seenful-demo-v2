@@ -1,0 +1,17 @@
+name: 'CB.08 李叔故宫单张 vs 沉淀西湖池 → no_backfill (跨城反例)'
+persona: laoli_youke
+behavior_pattern: CB.08
+test_path: cascade
+test_type: red_line
+product_intent: '跨城反例: 新故宫照 vs 池里西湖, 不应误召回'
+input:
+  new_photo: l42
+  sediment_pool:
+  - l51
+  - l52
+  - l53
+expected:
+  decision_tier: no_backfill
+invariants:
+- INV-01
+notes: 基础跨城反例

@@ -1,0 +1,55 @@
+# 路径 B time 维度配置 (ADR-0011)
+# 参考: docs/17_path_b_time.md
+# ⚠ 修改前先改 docs/17_path_b_time.md + docs/07_dimension_thresholds.md §3.2.2
+# ⚠ 不允许 src/ 硬编码任何下列数值
+
+path_b_time:
+
+  # ─── 时间链式切分 (gap-based segmentation, 非 DBSCAN) ──
+  # 相邻 gap > eps → 切, ≤ eps → 连 (single-linkage 链式连通)
+  # min_samples 字段不在此 — 实际为 1, 单点也成 cluster
+  chain_segmentation:
+    eps_minutes: 120              # 经验初值, OQ-022a 真实数据 grid search 调
+
+  # ─── 边界保护带 (ADR-0011 §2.8, 缓解 gap 阈值脆性) ───
+  # gap ∈ [eps - δ, eps + δ] 时, 落痕 rule_fired += "+near_eps_boundary"
+  # band 不动, 由上游 LLM 复审
+  near_eps_band:
+    delta_minutes: 20             # eps ± δ = 100-140min
+
+  # ─── 自然日归属 (ADR-0011 §2.3) ─────────────────────
+  # 0-6 点归"前一日 night", 跟自然作息对齐
+  natural_day:
+    dawn_cutoff_hour: 6
+
+  # ─── 跨夜连接 (T2.1 判定) ──────────────────────────
+  # day1 末事件 → day2 首事件 gap < max_gap_hours 视为连续
+  overnight:
+    max_gap_hours: 12             # 用户合理睡眠 + 早起 ≈ 8-10h, 12h 宽容
+
+  # ─── T1 单日网格 (8 行, ADR-0011 §2.4) ─────────────
+  t1_grid:
+    single_event_dense_max_h: 2   # T1.1 day_span ≤ 2h
+    adjacent_gap_max_h: 4         # T1.3 / T1.5 内部 cluster 间 gap < 4h
+    extended_chain_max_span_h: 12 # T1.5 / T1.6 day_span ≤ 12h
+    extended_chain_events_max: 5  # T1.5 events ∈ [3, 5], > 5 走 T1.6
+    dense_chain_events_min: 6     # T1.6 events ≥ 6 (单日过密)
+
+  # ─── T2 跨双日网格 (4 行) ───────────────────────────
+  t2_grid:
+    each_day_events_max: 2        # T2.1 / T2.2 各日 events ≤ 2
+    total_span_max_h: 30          # T2.2 total_span < 30h, ≥ 30h 走 T2.4
+
+  # ─── T3 长跨网格 (4 行, cap medium) ────────────────
+  t3_grid:
+    short_trip_max_days: 7        # T3.1 / T3.2 K_days ≤ 7
+    long_trip_max_days: 14        # T3.3 K_days ≤ 14
+    # K_days > 14 → T3.4 none
+
+  # ─── fallback (ADR-0011 §2.7) ──────────────────────
+  # ratio=1.0 → confidence=0.5, rule_fired += "+k_days_uncertain"
+  # 0 < ratio < 1 → confidence = 1.0 - ratio × penalty
+  # band 不动
+  fallback:
+    full_fallback_confidence: 0.5
+    partial_confidence_penalty: 0.3

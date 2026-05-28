@@ -1,0 +1,23 @@
+name: C.8 小王咖啡馆 5 咖啡 + 3 朋友合影 (同地不同主体)
+persona: xiaowang
+behavior_pattern: C.8
+test_path: L2
+product_intent: 同一咖啡馆但 2 个不同主体 (咖啡 vs 朋友), 多维度博弈应拆集
+input:
+  new_photos:
+  - w09
+  - w10
+  - w11
+  - w12
+  - w13
+  - w14
+  - w15
+  - w16
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: 同 GPS + event=meal/gathering 混 + theme cafe/friend 主体切换
+test_type: robustness

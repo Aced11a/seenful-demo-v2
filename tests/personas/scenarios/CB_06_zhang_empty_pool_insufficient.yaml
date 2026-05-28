@@ -1,0 +1,14 @@
+name: 'CB.06 张奶奶单张 vs 空池 → insufficient'
+persona: laoqi_zhang
+behavior_pattern: CB.06
+test_path: cascade
+test_type: red_line
+product_intent: 'cascade 基础反例: 空池无候选 → insufficient_candidates'
+input:
+  new_photo: z32
+  sediment_pool: []
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-04
+notes: 基础反例

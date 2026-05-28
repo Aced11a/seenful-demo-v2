@@ -1,0 +1,19 @@
+name: EV.1 张奶奶餐厅周年庆 event 多信号冲突 3 张
+persona: laoqi_zhang
+behavior_pattern: EV.1
+test_path: L2
+product_intent: event=celebration + activity=meal + scene=restaurant 多维冲突, ADR-0012
+  primary_share 怎么判
+input:
+  new_photos:
+  - z44
+  - z45
+  - z46
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: event 单值 celebration 一致, activity 和 scene 也一致但不是 celebration. 多信号冲突
+test_type: robustness

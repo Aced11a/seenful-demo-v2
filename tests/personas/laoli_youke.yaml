@@ -1,0 +1,292 @@
+# 李叔叔 persona v0.2 (ADR-0019 v0.2 修订)
+# 50 张 / 40 天 / 标签每张 unique 真实化
+# 覆盖中年模式: B.1 长尾 / B.2 跨业务日 / B.3 中场停顿 / B.5 出差+游 / B.6 送行+回程 / B.7 接娃高频
+#         + D.5 接收别人发的图
+
+persona_id: laoli_youke
+
+identity:
+  name: 李叔叔
+  age: 58
+  city: 上海
+  life_stage: semi_retired
+  photo_style_preference: vivid
+  content_topics: [travel, work, family]
+
+life_events:
+  - {date: 2026-04-05, type: travel_xihu, summary: 西湖跨业务日夜游}
+  - {date: 2026-04-12, type: business_trip, summary: 苏州出差+顺便游}
+  - {date: 2026-04-18, type: terracotta_burst, summary: 兵马俑爆拍+顺路}
+  - {date: 2026-04-25, type: airport_farewell, summary: 送女儿去机场}
+  - {date: 2026-04-28, type: pick_grandkid, summary: 接外孙女放学}
+  - {date: 2026-05-01, type: one_day_trip, summary: 周末一日游 (中场停顿)}
+  - {date: 2026-05-08, type: friend_share, summary: 朋友发的旅游图}
+
+active_state:                         # ADR-0020 字段保留
+  system_counters: {cumulative_active_days: 89, journey_day: 89, current_streak: 12, total_photos_uploaded: 156}
+  derived_preferences: {}
+  session_state: {}
+  behavior_cache: {recent_features_used: [album_create, album_view]}
+  guard_flags: {}
+
+user_model:                           # ADR-0020 字段保留
+  version: 8
+  identity:
+    nickname: {value: 李叔叔, source: persona_seed}
+    city: {value: 上海, source: persona_seed}
+    life_stage: {value: semi_retired, evidence_confidence: 0.85}
+  preferences: {}
+  current_state: {}
+  companion_notes: ""
+  relationship_stage: {familiarity: warm}
+
+# Event Log mock (ADR-0020)
+event_log:
+  - {id: evt_l01, ts: 2026-04-02T08:00, type: photo_upload, source: photo_pipeline, content: {count: 1, themes: [tea, home]}, business_date: 2026-04-02, late_arrival: false}
+  - {id: evt_xihu_chat, ts: 2026-04-05T22:30, type: life_event, source: chat_parser, content: {event_type: visit_place, description: 西湖夜游, entities: {place: 杭州西湖}}, business_date: 2026-04-05, late_arrival: false}
+  - {id: evt_l13, ts: 2026-04-18T11:00, type: photo_upload, source: photo_pipeline, content: {count: 12, themes: [terracotta, history]}, business_date: 2026-04-18, late_arrival: false}
+  - {id: evt_farewell_emotion, ts: 2026-04-25T11:00, type: emotion_signal, source: chat_parser, content: {emotion: nostalgic, intensity: moderate, raw: 送完女儿有点空落}, business_date: 2026-04-25, late_arrival: false}
+  - {id: evt_l55, ts: 2026-05-01T10:00, type: photo_upload, source: photo_pipeline, content: {count: 20, themes: [mountain, peak, travel]}, business_date: 2026-05-01, late_arrival: false}
+
+# Daily Digest mock
+daily_digests:
+  - business_date: 2026-04-05
+    structured: {photo_count: 6, top_themes: [xihu, lake, night], locations: [hangzhou], mood: [poetic]}
+    episodic_text: "2026年4月5日深夜, 李叔叔在西湖夜游 6 张, 跨业务日."
+    should_store: true
+    event_count: 6
+    frozen_at: 2026-04-06T04:00:00
+  - business_date: 2026-04-18
+    structured: {photo_count: 13, top_themes: [terracotta, history], locations: [xian]}
+    episodic_text: "2026年4月18日, 李叔叔在兵马俑爆拍 12 张 + 路上加油站 1 张."
+    should_store: true
+    event_count: 13
+    frozen_at: 2026-04-19T04:00:00
+  - business_date: 2026-04-25
+    structured: {photo_count: 8, top_themes: [airport, farewell], mood: [nostalgic]}
+    episodic_text: "2026年4月25日, 李叔叔送女儿机场 5 + 地铁回程 3 张."
+    should_store: true
+    event_count: 8
+    frozen_at: 2026-04-26T04:00:00
+
+groups:
+  xihu_overnight:                         # B.2 跨业务日一日游 (西湖夜游 4/5 22:00 → 4/6 02:00)
+    behavior_pattern: B.2
+    description: 跨 04:00 业务日边界的连续夜游
+  business_plus_travel:                   # B.5 出差 + 顺便游 (上海开会 + 苏州周末)
+    behavior_pattern: B.5
+    description: 工作 mix 旅游
+  terracotta_burst_plus_one:              # B.1 单点爆拍 + 顺路一张
+    behavior_pattern: B.1
+    description: 兵马俑 12 张 + 路上加油站 1 张
+  airport_farewell_return:                # B.6 送家人 + 回程
+    behavior_pattern: B.6
+    description: 机场送别 5 张 + 地铁回程 3 张
+  pick_grandkid_routine:                  # B.7 接外孙女放学 (每天高频时间地点)
+    behavior_pattern: B.7
+    description: 5 天连续在学校门口接娃
+  one_day_with_long_break:                # B.3 中场长停顿
+    behavior_pattern: B.3
+    description: 上午拍 + 午饭休 2 小时 + 下午拍 (同一天)
+  friend_shared_photos:                   # D.5 接收别人发的照片
+    behavior_pattern: D.5
+    description: 微信存图, EXIF 全 fallback / GPS 错乱
+
+  # ─── ADR-0019 v0.3 旅游分布场景 ──────────────────────
+  xihu_loop:                              # #1 环西湖闭环 (15km 一圈)
+    behavior_pattern: T.1
+    description: 环西湖一圈, GPS 排成闭环, 首尾近但中间隔 3-4 小时
+  pedestrian_street:                       # #3 步行街密度不均 + 高楼漂移
+    behavior_pattern: T.3
+    description: 南京路步行街, 网红店密集 + 普通路段稀疏 + 高楼 GPS 飘
+  around_landmark:                         # #7 绕主体小环 (埃菲尔铁塔)
+    behavior_pattern: T.7
+    description: 绕地标拍照, GPS 形成小环, 主体始终是同一建筑
+  multi_spot_one_day:                      # #12 北京一日游分散多点
+    behavior_pattern: T.12
+    description: 一日去 3 个景点 (故宫+长城+鸟巢), 点间几十公里
+  marathon_sightseeing:                    # #19 暴走 10 景点
+    behavior_pattern: T.19
+    description: 一天跑 10 个景点, 每点只 1 张, 高频切换
+  resort_lazy_3days:                       # #20 度假村躺平
+    behavior_pattern: T.20
+    description: 三亚度假村 3 天不动, GPS 全程相同, 时间稀疏
+
+  # ─── ADR-0019 v0.4 补漏场景 ───────────────────────────
+  weekend_camping_crossday:               # T.22 跨自然日同事件 (露营)
+    behavior_pattern: T.22
+    description: 周末 4/26-4/27 连续露营, 跨 2 个 04:00 业务日
+  theme_granularity_mix:                   # TH.1 theme 颗粒度不一致
+    behavior_pattern: TH.1
+    description: 同地点不同颗粒度标签 (粗/中/细/感官混合), 字面 Jaccard 低但语义相似
+  anchor_multi_granularity:                # ANC.1 anchor 多颗粒
+    behavior_pattern: ANC.1
+    description: meaning 抽象 + object 具体 多个都 strong
+
+albums:
+  past_xihu_album:                        # 假设 3 月有过一次湖区之旅"已成集 (ADR-0025 后用通用景观词)
+    title: "湖区之旅"
+    place_anchor_gps: [30.252, 120.142]
+    place_anchor_radius_m: 2000
+    theme_clusters: [{rep: lake, freq: 8}, {rep: travel, freq: 6}, {rep: bridge, freq: 4}]
+    event_agg: {primary: outing, secondary: [meal], tertiary: []}
+    anchors_set: [湖光, 远行, 夜色]
+    photo_count: 18
+
+  pick_grandkid_album:                    # 已有"接外孙女" 相册 (假设之前的接送)
+    title: "接外孙女"
+    place_anchor_gps: [31.215, 121.420]   # 学校门口
+    place_anchor_radius_m: 50
+    theme_clusters: [{rep: school, freq: 6}, {rep: grandkid, freq: 5}, {rep: routine, freq: 4}]
+    event_agg: {primary: daily_record, secondary: [], tertiary: []}
+    anchors_set: [童趣, 慢下来]
+    photo_count: 12
+
+photos:
+
+  # ─── B.2 跨业务日西湖夜游 6 张 (4/5 22:00 → 4/6 02:00) ────
+  # ADR-0021 v0.8 真实化: GPS 跨景点 2-3km (西湖夜游真实场景跨多个景点)
+  # event 混 outing/daily_record (茶馆/散步偏 daily, 看景偏 outing)
+  - {id: l01, ts: 2026-04-05T22:00, gps: [30.262, 120.132], theme: [lake, north_shore, night_arrive],     subjects: [water, light, gate], event: outing,       tone: poetic,    anchors: [湖光, 夜色],     scene: travel, activity: sightseeing, hf: false, group: lake_overnight, narrative: 北山街入口夜到达}
+  - {id: l02, ts: 2026-04-05T22:45, gps: [30.258, 120.151], theme: [lake, music_fountain, lights],       subjects: [fountain, lights],   event: outing,       tone: poetic,    anchors: [夜色, 灯光],     scene: travel, activity: sightseeing, hf: false, group: lake_overnight, narrative: 音乐喷泉广场 (东岸)}
+  - {id: l03, ts: 2026-04-05T23:30, gps: [30.245, 120.143], theme: [tea_house, midnight, lantern],       subjects: [teapot, lantern],    event: daily_record, tone: quiet,     anchors: [慢下来],         scene: restaurant, activity: meal, hf: false, group: lake_overnight, narrative: 南岸茶馆夜话}
+  - {id: l04, ts: 2026-04-06T00:30, gps: [30.250, 120.155], theme: [lake, midnight_walk, calm],          subjects: [water, path],        event: daily_record, tone: serene,    anchors: [湖光, 静夜],     scene: travel, activity: walk, hf: false, group: lake_overnight, narrative: 子时湖东散步 (休闲)}
+  - {id: l05, ts: 2026-04-06T01:15, gps: [30.262, 120.140], theme: [duanqiao, moonlight, snow],          subjects: [bridge, moon],       event: outing,       tone: poetic,    anchors: [月色, 古韵],     scene: travel, activity: sightseeing, hf: false, group: lake_overnight, narrative: 月下断桥 (回北边)}
+  - {id: l06, ts: 2026-04-06T02:00, gps: [30.265, 120.135], theme: [lake, dawn_haze, departure],         subjects: [water, mist, sky],   event: outing,       tone: nostalgic, anchors: [告别],           scene: travel, activity: sightseeing, hf: false, group: lake_overnight, narrative: 凌晨北面离别 (跨城出口)}
+
+  # ─── B.5 出差 + 顺便游 6 张 (上海开会 + 苏州周末) ─────────
+  - {id: l07, ts: 2026-04-12T09:00, gps: [31.200, 121.430], theme: [work, conference, badge],       subjects: [badge, sign],    event: work,         tone: neutral, anchors: [], scene: indoor, activity: resting, hf: true, group: business_plus_travel, narrative: 上海会议签到}
+  - {id: l08, ts: 2026-04-12T11:30, gps: [31.200, 121.430], theme: [work, presentation, screen],    subjects: [screen, slide],  event: work,         tone: neutral, anchors: [], scene: indoor, activity: resting, hf: true, group: business_plus_travel, narrative: 会议演讲}
+  - {id: l09, ts: 2026-04-12T19:00, gps: [31.210, 121.440], theme: [work, dinner, business],        subjects: [dish, friend],   event: meal,         tone: neutral, anchors: [], scene: restaurant, activity: meal, hf: false, group: business_plus_travel, narrative: 商务晚宴}
+  - {id: l10, ts: 2026-04-13T10:00, gps: [31.323, 120.628], theme: [zhuozheng, garden, ancient],    subjects: [pavilion, pond], event: outing,       tone: poetic,  anchors: [古韵, 树影], scene: travel, activity: walk, hf: false, group: business_plus_travel, narrative: 苏州拙政园}
+  - {id: l11, ts: 2026-04-13T11:30, gps: [31.324, 120.629], theme: [zhuozheng, lotus, pond],        subjects: [lotus],          event: outing,       tone: poetic,  anchors: [古韵, 湖光], scene: travel, activity: walk, hf: false, group: business_plus_travel, narrative: 拙政园荷}
+  - {id: l12, ts: 2026-04-13T15:00, gps: [31.310, 120.620], theme: [cityscape, snack, street],         subjects: [snack],          event: meal,         tone: warm,    anchors: [], scene: street, activity: meal, hf: false, group: business_plus_travel, narrative: 苏州小吃街}
+
+  # ─── B.1 兵马俑爆拍 + 顺路加油 13 张 (LLM 真实多样化) ───
+  - {id: l13, ts: 2026-04-18T10:00, gps: [34.385, 109.273], theme: [warrior_array, ancient_pit, scale],       subjects: [warrior, formation], event: outing,       tone: awe,       anchors: [古韵, 远行], scene: travel, activity: sightseeing, hf: false, group: terracotta_burst_plus_one, narrative: 兵马俑一号坑震撼}
+  - {id: l14, ts: 2026-04-18T10:08, gps: [34.385, 109.273], theme: [clay_face, cracks, detail],              subjects: [warrior],            event: outing,       tone: awe,       anchors: [古韵], scene: travel, activity: sightseeing, hf: false, group: terracotta_burst_plus_one, narrative: 兵马俑面部特写}
+  - {id: l15, ts: 2026-04-18T10:15, gps: [34.385, 109.274], theme: [bronze_chariot, horses, museum_piece],   subjects: [horse, chariot],     event: outing,       tone: awe,       anchors: [古韵], scene: travel, activity: sightseeing, hf: false, group: terracotta_burst_plus_one, narrative: 铜车马 (3 词)}
+  - {id: l16, ts: 2026-04-18T10:22, gps: [34.386, 109.275], theme: [kneeling_archer, posture],               subjects: [archer],             event: outing,       tone: awe,       anchors: [古韵], scene: travel, activity: sightseeing, hf: false, group: terracotta_burst_plus_one, narrative: 跪射俑特写 (2 词)}
+  - {id: l17, ts: 2026-04-18T10:30, gps: [34.385, 109.273], theme: [general_figure, rank_helmet, 将军],       subjects: [general],            event: outing,       tone: awe,       anchors: [古韵], scene: travel, activity: sightseeing, hf: false, group: terracotta_burst_plus_one, narrative: 将军俑 (中英混)}
+  - {id: l18, ts: 2026-04-18T10:40, gps: [34.386, 109.274], theme: [vast_hall, exhibition, dim_light, awe_inspiring], subjects: [hall, wall], event: outing,       tone: awe,       anchors: [古韵], scene: indoor, activity: sightseeing, hf: false, group: terracotta_burst_plus_one, narrative: 二号坑展厅 (4 词)}
+  - {id: l19, ts: 2026-04-18T10:50, gps: [34.385, 109.273], theme: [broken_pieces, restoration, archaeology], subjects: [fragment],          event: outing,       tone: awe,       anchors: [古韵], scene: indoor, activity: sightseeing, hf: false, group: terracotta_burst_plus_one, narrative: 修复中的俑}
+  - {id: l20, ts: 2026-04-18T11:00, gps: [34.385, 109.272], theme: [souvenir, miniature_figurine, gift_shop], subjects: [souvenir],          event: daily_record, tone: warm,      anchors: [], scene: indoor, activity: walk, hf: false, group: terracotta_burst_plus_one, narrative: 礼品店纪念品}
+  - {id: l21, ts: 2026-04-18T11:15, gps: [34.386, 109.276], theme: [courtyard, brick_wall, garden_path],     subjects: [courtyard, wall],   event: outing,       tone: awe,       anchors: [古韵], scene: travel, activity: walk, hf: false, group: terracotta_burst_plus_one, narrative: 庭院}
+  - {id: l22, ts: 2026-04-18T11:25, gps: [34.385, 109.273], theme: [pigment_trace, time_worn],               subjects: [warrior, color],    event: outing,       tone: awe,       anchors: [古韵, 时光], scene: indoor, activity: sightseeing, hf: false, group: terracotta_burst_plus_one, narrative: 残存彩绘 (2 词)}
+  - {id: l23, ts: 2026-04-18T11:35, gps: [34.385, 109.273], theme: [overview, vast_pit, panorama_shot, 全景], subjects: [pit, scale],         event: outing,       tone: awe,       anchors: [古韵, 远行], scene: travel, activity: sightseeing, hf: false, group: terracotta_burst_plus_one, narrative: 大坑全景 (4 词)}
+  - {id: l24, ts: 2026-04-18T11:45, gps: [34.385, 109.273], theme: [ticket_stub, exit_gate],                 subjects: [ticket],             event: daily_record, tone: nostalgic, anchors: [告别], scene: indoor, activity: walk, hf: false, group: terracotta_burst_plus_one, narrative: 出口票根}
+  - {id: l25, ts: 2026-04-18T13:30, gps: [34.420, 109.150], theme: [gas_station, roadside_snack, water_bottle], subjects: [snack],          event: daily_record, tone: neutral,   anchors: [], scene: street, activity: resting, hf: false, group: terracotta_burst_plus_one, narrative: 回程加油站买零食}
+
+  # ─── B.6 送女儿去机场 + 回程 8 张 ────────────────────────
+  - {id: l26, ts: 2026-04-25T08:00, gps: [31.198, 121.337], theme: [airport, departure_hall, luggage], subjects: [luggage, sign],   event: outing, tone: nostalgic, anchors: [告别, 远行], scene: travel, activity: resting, hf: false, group: airport_farewell_return, narrative: 浦东机场出发厅, people: family_like}
+  - {id: l27, ts: 2026-04-25T08:45, gps: [31.198, 121.337], theme: [airport, hug, farewell],         subjects: [people, hug],     event: gathering, tone: nostalgic, anchors: [告别],   scene: travel, activity: resting, hf: false, group: airport_farewell_return, narrative: 跟女儿拥抱, people: family_like}
+  - {id: l28, ts: 2026-04-25T09:15, gps: [31.198, 121.337], theme: [airport, security_gate, wave],   subjects: [gate, hand],      event: gathering, tone: nostalgic, anchors: [告别],   scene: travel, activity: resting, hf: false, group: airport_farewell_return, narrative: 安检口挥手}
+  - {id: l29, ts: 2026-04-25T09:30, gps: [31.198, 121.337], theme: [airport, window, plane],         subjects: [window, plane],   event: outing, tone: nostalgic, anchors: [远行], scene: travel, activity: resting, hf: false, group: airport_farewell_return, narrative: 观景窗看飞机}
+  - {id: l30, ts: 2026-04-25T10:00, gps: [31.198, 121.337], theme: [airport, exit, sign],            subjects: [sign],            event: daily_record, tone: nostalgic, anchors: [], scene: travel, activity: walk, hf: false, group: airport_farewell_return, narrative: 离开机场}
+  - {id: l31, ts: 2026-04-25T11:00, gps: [31.205, 121.380], theme: [metro, return, indoor],          subjects: [metro_car],       event: daily_record, tone: quiet, anchors: [], scene: indoor, activity: resting, hf: false, group: airport_farewell_return, narrative: 地铁回程}
+  - {id: l32, ts: 2026-04-25T11:45, gps: [31.208, 121.395], theme: [metro, window, neighborhood],    subjects: [view],            event: daily_record, tone: quiet, anchors: [], scene: indoor, activity: walk, hf: false, group: airport_farewell_return, narrative: 地铁窗外}
+  - {id: l33, ts: 2026-04-25T12:00, gps: [31.200, 121.400], theme: [home, empty_room, light],        subjects: [room],            event: daily_record, tone: nostalgic, anchors: [独处], scene: home, activity: resting, hf: true, group: airport_farewell_return, narrative: 到家后空房子}
+
+  # ─── B.7 接外孙女放学 (5 天连续高频时间地点) 5 张 ─────────
+  # ADR-0021 v0.8: 5 天接娃 LLM 真实输出 event 不会全 daily_record
+  # 放学路上买零食 / 雨天打伞 等场景 outing 倾向更强 (出门活动)
+  # LLM 真实多样化: 不全用 school_gate 前缀
+  - {id: l34, ts: 2026-04-28T15:30, gps: [31.215, 121.420], theme: [waiting_at_gate, parents_lineup],            subjects: [gate, sign],      event: daily_record, tone: warm, anchors: [陪伴], scene: outdoor, activity: walk, hf: true, group: pick_grandkid_routine, narrative: 学校门口等}
+  - {id: l35, ts: 2026-04-29T15:30, gps: [31.215, 121.420], theme: [grandkid_smile, hand_holding, end_of_day],   subjects: [child, hand],     event: gathering,    tone: warm, anchors: [陪伴, 笑], scene: outdoor, activity: walk, hf: true, group: pick_grandkid_routine, narrative: 外孙女出校门, people: single}
+  - {id: l36, ts: 2026-04-30T15:30, gps: [31.215, 121.420], theme: [snack_stand, after_school_treat, 零食],      subjects: [snack, child],   event: outing,       tone: warm, anchors: [陪伴], scene: outdoor, activity: walk, hf: true, group: pick_grandkid_routine, narrative: 放学买零食, people: single}
+  - {id: l37, ts: 2026-05-04T15:30, gps: [31.215, 121.420], theme: [routine_pickup, monday_afternoon],           subjects: [gate, child],    event: daily_record, tone: warm, anchors: [陪伴], scene: outdoor, activity: walk, hf: true, group: pick_grandkid_routine, narrative: 周一接娃 (例行)}
+  - {id: l38, ts: 2026-05-05T15:30, gps: [31.215, 121.420], theme: [umbrella, rain_drops, sidewalk_puddle],      subjects: [umbrella, child], event: outing,       tone: warm, anchors: [陪伴, 雨润], scene: outdoor, activity: walk, hf: true, group: pick_grandkid_routine, narrative: 雨天打伞接娃, people: single}
+
+  # ─── B.3 中场长停顿 5 张 (LLM 真实多样化, ADR-0021) ─────
+  - {id: l39, ts: 2026-05-01T09:00, gps: [29.118, 110.479], theme: [dawn_mist, peak_silhouette, alpine],   subjects: [peak, mist],     event: outing,       tone: awe,    anchors: [山色, 远行], scene: travel, activity: sightseeing, hf: false, group: one_day_with_long_break, narrative: 张家界清晨山顶}
+  - {id: l40, ts: 2026-05-01T10:30, gps: [29.119, 110.480], theme: [stone_steps, hiking_trail],           subjects: [trail],          event: outing,       tone: serene, anchors: [山色, 步行], scene: travel, activity: walk, hf: false, group: one_day_with_long_break, narrative: 山间步道 (2 词)}
+  - {id: l41, ts: 2026-05-01T13:00, gps: [29.115, 110.475], theme: [hot_soup, local_dish, mountain_inn, 农家菜], subjects: [soup],    event: meal,         tone: warm,   anchors: [], scene: restaurant, activity: meal, hf: false, group: one_day_with_long_break, narrative: 山下午饭}
+  - {id: l42, ts: 2026-05-01T15:30, gps: [29.120, 110.480], theme: [valley_view, cliffside, deep_drop],   subjects: [valley],         event: outing,       tone: awe,    anchors: [山色, 远行], scene: travel, activity: sightseeing, hf: false, group: one_day_with_long_break, narrative: 下午山谷}
+  - {id: l43, ts: 2026-05-01T17:00, gps: [29.122, 110.482], theme: [sunset_peak, golden_clouds, end_of_day], subjects: [peak, sunset], event: outing,       tone: poetic, anchors: [山色, 晚霞], scene: travel, activity: sightseeing, hf: false, group: one_day_with_long_break, narrative: 山顶日落收尾}
+
+  # ─── D.5 接收别人发的图 4 张 (EXIF 全 fallback / GPS 错乱) ──
+  - {id: l44, ts: 2026-05-08T20:00, gps: [31.200, 121.400], theme: [japan, sakura, friend_share],     subjects: [sakura, tree],   event: outing, tone: poetic, anchors: [], scene: travel, activity: sightseeing, hf: false, group: friend_shared_photos, narrative: 朋友发的日本樱花 (上传时间, EXIF丢失)}
+  - {id: l45, ts: 2026-05-08T20:01, gps: [31.200, 121.400], theme: [japan, temple, ancient_share],    subjects: [temple],         event: outing, tone: poetic, anchors: [], scene: travel, activity: sightseeing, hf: false, group: friend_shared_photos, narrative: 朋友发的京都寺庙}
+  - {id: l46, ts: 2026-05-08T20:02, gps: [31.200, 121.400], theme: [japan, street_view, friend],      subjects: [street],         event: daily_record, tone: neutral, anchors: [], scene: street, activity: walk, hf: false, group: friend_shared_photos, narrative: 朋友发的京都街景}
+  - {id: l47, ts: 2026-05-09T19:00, gps: [31.200, 121.400], theme: [pet_friend_share, cat, cute],     subjects: [cat],            event: daily_record, tone: warm, anchors: [], scene: home, activity: resting, hf: true, group: friend_shared_photos, narrative: 邻居发的猫照片}
+
+  # ─── 收尾 3 张 ────────────────────────────────────────
+  - {id: l48, ts: 2026-04-15T09:00, gps: [31.200, 121.400], theme: [home_tea, morning, calm],        subjects: [teapot],         event: daily_record, tone: serene, anchors: [慢下来], scene: home, activity: resting, hf: true, group: business_plus_travel, narrative: 早茶}
+  - {id: l49, ts: 2026-05-03T10:00, gps: [31.200, 121.400], theme: [home_chess, friend, leisure],    subjects: [chess, friend],  event: gathering, tone: warm, anchors: [闲适], scene: home, activity: resting, hf: true, group: friend_shared_photos, narrative: 跟邻居下棋, people: single}
+  - {id: l50, ts: 2026-05-10T08:30, gps: [31.200, 121.400], theme: [home_routine, breakfast, light],  subjects: [bowl, light],    event: daily_record, tone: warm, anchors: [日常], scene: home, activity: meal, hf: true, group: friend_shared_photos, narrative: 早餐光}
+
+  # ─── ADR-0019 v0.3 旅游分布场景 ─────────────────────────
+
+  # #1 环西湖闭环 8 张 (LLM 真实多样化, ADR-0021)
+  - {id: l51, ts: 2026-04-09T08:00, gps: [30.249, 120.138], theme: [morning_lake, willow, north_gate],          subjects: [water, willow],   event: outing,       tone: serene,    anchors: [湖光, 远行], scene: travel, activity: walk, hf: false, group: lake_loop, narrative: 环湖起点北山街}
+  - {id: l52, ts: 2026-04-09T09:30, gps: [30.262, 120.135], theme: [duanqiao, stone_arch, lake_view],           subjects: [bridge, water],   event: outing,       tone: serene,    anchors: [湖光], scene: travel, activity: walk, hf: false, group: lake_loop, narrative: 环湖北边断桥}
+  - {id: l53, ts: 2026-04-09T10:30, gps: [30.275, 120.145], theme: [solitary_hill, tree_canopy, 西湖],          subjects: [hill, tree],      event: outing,       tone: poetic,    anchors: [山色], scene: travel, activity: walk, hf: false, group: lake_loop, narrative: 环湖西边孤山 (中文混)}
+  - {id: l54, ts: 2026-04-09T11:30, gps: [30.270, 120.160], theme: [pagoda_pavilion, 三潭印月, reflection],    subjects: [pavilion],        event: outing,       tone: poetic,    anchors: [湖光, 古韵], scene: travel, activity: walk, hf: false, group: lake_loop, narrative: 环湖三潭印月}
+  - {id: l55, ts: 2026-04-09T12:30, gps: [30.255, 120.175], theme: [waterfront_restaurant, lunch_set],          subjects: [restaurant],      event: meal,         tone: warm,      anchors: [], scene: restaurant, activity: meal, hf: false, group: lake_loop, narrative: 南边湖边午饭}
+  - {id: l56, ts: 2026-04-09T13:30, gps: [30.240, 120.170], theme: [pagoda_pagoda, dusk_light, ancient_silhouette], subjects: [pagoda],     event: outing,       tone: poetic,    anchors: [古韵], scene: travel, activity: walk, hf: false, group: lake_loop, narrative: 雷峰塔}
+  - {id: l57, ts: 2026-04-09T14:30, gps: [30.245, 120.155], theme: [stone_path, bench_rest, lakeside_walk],     subjects: [path, bench],     event: daily_record, tone: serene,    anchors: [慢下来], scene: travel, activity: walk, hf: false, group: lake_loop, narrative: 环湖西南步道 (休闲偏 daily)}
+  - {id: l58, ts: 2026-04-09T15:30, gps: [30.250, 120.139], theme: [evening_lake, returning, sunset_glow],      subjects: [water, sunset],   event: outing,       tone: nostalgic, anchors: [湖光, 远行], scene: travel, activity: walk, hf: false, group: lake_loop, narrative: 环湖回到起点附近}
+
+  # #3 步行街密度不均 6 张 (LLM 真实多样化, ADR-0021)
+  - {id: l59, ts: 2026-04-11T15:00, gps: [31.241, 121.475], theme: [neon_sign, milk_tea_shop, queue_line],     subjects: [neon, sign],      event: daily_record, tone: warm,    anchors: [], scene: street, activity: walk, hf: false, group: pedestrian_street, narrative: 网红奶茶店门口一}
+  - {id: l60, ts: 2026-04-11T15:02, gps: [31.241, 121.475], theme: [boba_dessert, foam_topping, 网红],         subjects: [dessert],         event: meal,         tone: warm,    anchors: [], scene: street, activity: walk, hf: false, group: pedestrian_street, narrative: 网红奶茶店门口二}
+  - {id: l61, ts: 2026-04-11T15:04, gps: [31.241, 121.475], theme: [crowd, waiting, snapshot],                 subjects: [queue, crowd],    event: daily_record, tone: warm,    anchors: [], scene: street, activity: walk, hf: false, group: pedestrian_street, narrative: 网红奶茶店门口三排队}
+  - {id: l62, ts: 2026-04-11T15:20, gps: [31.239, 121.477], theme: [pedestrians, brick_pavement],              subjects: [people, street],  event: daily_record, tone: neutral, anchors: [], scene: street, activity: walk, hf: false, group: pedestrian_street, narrative: 普通路段散拍 (高楼漂移 GPS)}
+  - {id: l63, ts: 2026-04-11T15:35, gps: [31.237, 121.480], theme: [shop_window, mannequin_display, reflection], subjects: [window],         event: daily_record, tone: neutral, anchors: [], scene: street, activity: walk, hf: false, group: pedestrian_street, narrative: 路过橱窗}
+  - {id: l64, ts: 2026-04-11T15:50, gps: [31.235, 121.483], theme: [waitan_view, end_of_street, evening_crowd], subjects: [crowd],          event: daily_record, tone: neutral, anchors: [], scene: street, activity: walk, hf: false, group: pedestrian_street, narrative: 步行街尽头}
+
+  # #7 绕主体小环 6 张 (LLM 真实多样化)
+  - {id: l65, ts: 2026-04-14T16:00, gps: [31.245, 121.495], theme: [oriental_tower, full_height, north_face], subjects: [tower],         event: outing,    tone: awe,    anchors: [远行], scene: travel, activity: sightseeing, hf: false, group: around_landmark, narrative: 东方明珠北面}
+  - {id: l66, ts: 2026-04-14T16:08, gps: [31.243, 121.497], theme: [low_angle, sphere_detail, 仰拍],          subjects: [tower],            event: outing,    tone: awe,    anchors: [远行], scene: travel, activity: sightseeing, hf: false, group: around_landmark, narrative: 东方明珠东面仰拍}
+  - {id: l67, ts: 2026-04-14T16:15, gps: [31.243, 121.493], theme: [huangpu_river, skyline, tower_reflection],subjects: [tower, water],    event: outing,    tone: awe,    anchors: [湖光, 远行], scene: travel, activity: sightseeing, hf: false, group: around_landmark, narrative: 东方明珠南面带江}
+  - {id: l68, ts: 2026-04-14T16:22, gps: [31.245, 121.491], theme: [sunset_silhouette, golden_hour, dramatic_sky], subjects: [tower, sunset], event: outing,    tone: poetic, anchors: [晚霞, 远行], scene: travel, activity: sightseeing, hf: false, group: around_landmark, narrative: 东方明珠西面日落}
+  - {id: l69, ts: 2026-04-14T16:30, gps: [31.245, 121.495], theme: [group_selfie, friend_pose],              subjects: [tower, friend],   event: gathering, tone: warm,   anchors: [], scene: travel, activity: gathering, hf: false, group: around_landmark, narrative: 跟朋友合影 (2 词), people: single}
+  - {id: l70, ts: 2026-04-14T16:45, gps: [31.244, 121.494], theme: [tower_base, steel_structure, closeup, 钢架], subjects: [tower_base],   event: outing,    tone: awe,    anchors: [古韵], scene: travel, activity: sightseeing, hf: false, group: around_landmark, narrative: 塔基特写}
+
+  # #12 北京一日游分散多点 6 张 (故宫 + 长城 + 鸟巢, 跨 70km)
+  - {id: l71, ts: 2026-04-19T09:00, gps: [39.917, 116.397], theme: [palace, palace, morning],            subjects: [palace],          event: outing, tone: awe, anchors: [古韵, 远行], scene: travel, activity: sightseeing, hf: false, group: multi_spot_one_day, narrative: 北京一日游早上故宫}
+  - {id: l72, ts: 2026-04-19T10:30, gps: [39.918, 116.396], theme: [palace, palace, hall],               subjects: [hall, gate],      event: outing, tone: awe, anchors: [古韵], scene: travel, activity: sightseeing, hf: false, group: multi_spot_one_day, narrative: 故宫太和殿}
+  - {id: l73, ts: 2026-04-19T13:30, gps: [40.432, 116.564], theme: [wall, mutianyu, badaling],     subjects: [wall, mountain],  event: outing, tone: awe, anchors: [古韵, 远行], scene: travel, activity: sightseeing, hf: false, group: multi_spot_one_day, narrative: 长城八达岭 70km 跨度}
+  - {id: l74, ts: 2026-04-19T15:00, gps: [40.434, 116.566], theme: [wall, watchtower],             subjects: [watchtower],      event: outing, tone: awe, anchors: [古韵], scene: travel, activity: sightseeing, hf: false, group: multi_spot_one_day, narrative: 长城烽火台}
+  - {id: l75, ts: 2026-04-19T18:00, gps: [40.001, 116.397], theme: [stadium, night, lights],           subjects: [stadium],         event: outing, tone: awe, anchors: [], scene: travel, activity: sightseeing, hf: false, group: multi_spot_one_day, narrative: 晚上鸟巢}
+  - {id: l76, ts: 2026-04-19T19:00, gps: [40.002, 116.399], theme: [stadium, stadium, neon],        subjects: [stadium, light],  event: outing, tone: awe, anchors: [], scene: travel, activity: sightseeing, hf: false, group: multi_spot_one_day, narrative: 鸟巢水立方夜景}
+
+  # #19 暴走 10 景点 10 张 (LLM 真实多样化, ADR-0021)
+  - {id: l77, ts: 2026-04-23T08:00, gps: [31.230, 121.473], theme: [riverbank, riverbank, colonial_buildings],     subjects: [riverbank],         event: outing,    tone: warm,   anchors: [远行], scene: travel, activity: sightseeing, hf: false, group: marathon_sightseeing, narrative: 外滩早上}
+  - {id: l78, ts: 2026-04-23T08:45, gps: [31.236, 121.494], theme: [tower_distant, river_view],         subjects: [tower],        event: outing,    tone: warm,   anchors: [], scene: travel, activity: sightseeing, hf: false, group: marathon_sightseeing, narrative: 东方明珠远观}
+  - {id: l79, ts: 2026-04-23T09:30, gps: [31.225, 121.500], theme: [garden, rockery, traditional],     subjects: [garden],       event: outing,    tone: poetic, anchors: [古韵], scene: travel, activity: sightseeing, hf: false, group: marathon_sightseeing, narrative: 豫园}
+  - {id: l80, ts: 2026-04-23T10:30, gps: [31.211, 121.463], theme: [plaza, cobblestone, cafe_terrace],    subjects: [plaza],        event: outing,    tone: warm,   anchors: [], scene: travel, activity: sightseeing, hf: false, group: marathon_sightseeing, narrative: 新天地}
+  - {id: l81, ts: 2026-04-23T11:30, gps: [31.220, 121.450], theme: [alley, narrow_alley, art_shop, 弄堂], subjects: [lane, shop],   event: outing,    tone: warm,   anchors: [], scene: travel, activity: sightseeing, hf: false, group: marathon_sightseeing, narrative: 田子坊 (4 词)}
+  - {id: l82, ts: 2026-04-23T13:00, gps: [31.225, 121.440], theme: [temple_courtyard, incense, golden_roof],  subjects: [temple],       event: outing,    tone: poetic, anchors: [古韵], scene: travel, activity: sightseeing, hf: false, group: marathon_sightseeing, narrative: 静安寺}
+  - {id: l83, ts: 2026-04-23T14:30, gps: [31.260, 121.453], theme: [skyscrapers, financial_skyline],           subjects: [building],     event: outing,    tone: warm,   anchors: [], scene: travel, activity: sightseeing, hf: false, group: marathon_sightseeing, narrative: 陆家嘴}
+  - {id: l84, ts: 2026-04-23T16:00, gps: [31.243, 121.495], theme: [tower, glass_facade, tall],      subjects: [tower],        event: outing,    tone: awe,    anchors: [远行], scene: travel, activity: sightseeing, hf: false, group: marathon_sightseeing, narrative: 上海中心}
+  - {id: l85, ts: 2026-04-23T17:30, gps: [31.183, 121.412], theme: [shopping_complex, escalator],            subjects: [mall],         event: daily_record, tone: warm, anchors: [], scene: travel, activity: walk, hf: false, group: marathon_sightseeing, narrative: 徐家汇 (休息感, 偏 daily)}
+  - {id: l86, ts: 2026-04-23T19:00, gps: [31.225, 121.477], theme: [neon_night, fountain_plaza],             subjects: [plaza, light], event: outing,    tone: warm,   anchors: [], scene: travel, activity: sightseeing, hf: false, group: marathon_sightseeing, narrative: 人民广场}
+
+  # #20 度假村躺平 3 天 5 张 (LLM 真实多样化, ADR-0021)
+  - {id: l87, ts: 2026-05-06T10:00, gps: [18.260, 109.510], theme: [white_sand, turquoise_water, palm_trees], subjects: [beach, sea],      event: outing,       tone: serene,    anchors: [慢下来, 远行], scene: travel, activity: walk, hf: false, group: resort_lazy_3days, narrative: 三亚度假村早晨海滩}
+  - {id: l88, ts: 2026-05-06T18:00, gps: [18.260, 109.510], theme: [infinity_pool, sky_reflection, golden_hour], subjects: [pool, sky],   event: daily_record, tone: poetic,    anchors: [慢下来, 晚霞], scene: travel, activity: resting, hf: false, group: resort_lazy_3days, narrative: 度假村泳池日落}
+  - {id: l89, ts: 2026-05-07T11:00, gps: [18.260, 109.510], theme: [tropical_breakfast, fruit_plate, balcony, 早午餐], subjects: [food, table], event: meal,    tone: serene,    anchors: [慢下来], scene: travel, activity: meal, hf: false, group: resort_lazy_3days, narrative: 度假村第二天早午餐 (4 词)}
+  - {id: l90, ts: 2026-05-07T16:00, gps: [18.260, 109.510], theme: [hammock, paperback, lazy_afternoon],     subjects: [chair, book],     event: daily_record, tone: serene,    anchors: [慢下来], scene: travel, activity: resting, hf: false, group: resort_lazy_3days, narrative: 度假村躺椅看书}
+  - {id: l91, ts: 2026-05-08T09:00, gps: [18.260, 109.510], theme: [packed_suitcase, farewell_beach],         subjects: [luggage, beach],  event: daily_record, tone: nostalgic, anchors: [告别, 远行], scene: travel, activity: resting, hf: false, group: resort_lazy_3days, narrative: 度假村第三天离别}
+
+  # ─── v0.4 补漏 ─────────────────────────────────────
+
+  # T.22 跨自然日同事件 (周末露营 LLM 真实多样化)
+  - {id: l92, ts: 2026-04-26T12:00, gps: [29.500, 118.200], theme: [tent_pitching, grass_clearing, mountain_view], subjects: [tent, ground], event: outing,    tone: warm,      anchors: [野趣, 远行], scene: travel, activity: walk, hf: false, group: weekend_camping_crossday, narrative: 周六中午到营地搭帐篷}
+  - {id: l93, ts: 2026-04-26T17:00, gps: [29.500, 118.200], theme: [bonfire, dusk_sky, friends_circle, 篝火],    subjects: [campfire, sky], event: gathering, tone: warm,      anchors: [野趣, 暖意], scene: outdoor, activity: gathering, hf: false, group: weekend_camping_crossday, narrative: 篝火黄昏}
+  - {id: l94, ts: 2026-04-26T21:00, gps: [29.500, 118.200], theme: [starry_sky, milky_way, tent_glow],          subjects: [stars, tent],   event: outing,    tone: poetic,    anchors: [星空, 静夜], scene: outdoor, activity: resting, hf: false, group: weekend_camping_crossday, narrative: 营地观星}
+  - {id: l95, ts: 2026-04-27T07:00, gps: [29.500, 118.200], theme: [sunrise, morning_mist, golden_light],       subjects: [sunrise, mist], event: outing,    tone: poetic,    anchors: [晨光, 远行], scene: outdoor, activity: walk, hf: false, group: weekend_camping_crossday, narrative: 营地日出}
+  - {id: l96, ts: 2026-04-27T12:00, gps: [29.502, 118.205], theme: [outdoor_lunch, sandwich, sunshine],         subjects: [trail, food],   event: meal,      tone: warm,      anchors: [野趣], scene: travel, activity: meal, hf: false, group: weekend_camping_crossday, narrative: 周日中午徒步午饭}
+  - {id: l97, ts: 2026-04-27T18:00, gps: [29.500, 118.200], theme: [packing_up, empty_site, leaving],           subjects: [tent, luggage], event: outing,    tone: nostalgic, anchors: [告别, 野趣], scene: travel, activity: walk, hf: false, group: weekend_camping_crossday, narrative: 周日傍晚收营离开}
+
+  # TH.1 theme 颗粒度混合 (同西湖, 4 张完全不同颗粒度标签)
+  - {id: l98, ts: 2026-04-10T09:00, gps: [30.252, 120.142], theme: [湖水, 春日, 自然],                  subjects: [water, sunlight],  event: outing, tone: serene, anchors: [湖光], scene: travel, activity: walk, hf: false, group: theme_granularity_mix, narrative: 西湖 (粗颗粒标签)}
+  - {id: l99, ts: 2026-04-10T09:30, gps: [30.253, 120.143], theme: [断桥, 行人, 风筝],                  subjects: [bridge, kite],     event: outing, tone: warm,   anchors: [古韵], scene: travel, activity: walk, hf: false, group: theme_granularity_mix, narrative: 西湖 (细颗粒物象标签)}
+  - {id: l100, ts: 2026-04-10T10:00, gps: [30.250, 120.140], theme: [西湖, 杭州, 风景],                 subjects: [scenery],          event: outing, tone: serene, anchors: [远行], scene: travel, activity: walk, hf: false, group: theme_granularity_mix, narrative: 西湖 (中颗粒地名标签)}
+  - {id: l101, ts: 2026-04-10T10:30, gps: [30.251, 120.144], theme: [波光, 涟漪, 春风],                 subjects: [water_surface],    event: outing, tone: poetic, anchors: [湖光, 春意], scene: travel, activity: walk, hf: false, group: theme_granularity_mix, narrative: 西湖 (感官颗粒标签)}
+
+  # ANC.1 anchor 多颗粒 (meaning + object 都 strong, 多个 anchor)
+  - {id: l102, ts: 2026-04-21T15:00, gps: [30.255, 120.150], theme: [bridge, garden, walk],             subjects: [bridge, lantern, stone, willow], event: outing, tone: poetic, anchors: [古韵, 慢下来, 春意, 团聚], scene: travel, activity: walk, hf: false, group: anchor_multi_granularity, narrative: 多 anchor 1 (4 抽象 meaning)}
+  - {id: l103, ts: 2026-04-21T15:30, gps: [30.255, 120.150], theme: [pavilion, ancient, tree],          subjects: [pavilion, eaves, branch, root, stone],   event: outing, tone: poetic, anchors: [古韵, 树影, 慢下来, 远行, 静默], scene: travel, activity: walk, hf: false, group: anchor_multi_granularity, narrative: 多 anchor 2 (5 个混合)}
+  - {id: l104, ts: 2026-04-21T16:00, gps: [30.255, 120.150], theme: [water, koi, peace],                subjects: [pond, fish, ripple, lotus_leaf],         event: outing, tone: serene, anchors: [湖光, 静默, 慢下来, 生机], scene: travel, activity: walk, hf: false, group: anchor_multi_granularity, narrative: 多 anchor 3 (object 4 个)}

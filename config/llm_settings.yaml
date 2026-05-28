@@ -1,0 +1,97 @@
+# LLM Judge 配置 (ADR-0020)
+# Provider 切换 (优先级: env var SEENFUL_LLM_MODE > config provider):
+#   - mock (默认, 跑测试用): MockJudge
+#   - qwen: QwenJudge (DashScope qwen-turbo)
+#   - anthropic: AnthropicJudge (v0.2 备选)
+
+provider: qwen                    # mock | qwen | anthropic (ADR-0020 切真)
+
+# Qwen 段 (ADR-0020)
+qwen:
+  endpoint: https://dashscope.aliyuncs.com/compatible-mode/v1
+  model: qwen-turbo               # qwen-turbo | qwen-plus | qwen-max
+  api_key_env: DASHSCOPE_API_KEY  # 从 env var 读 API key
+  temperature: 0.0                # 确定性
+  top_p: 1.0
+  seed: 42
+  max_tokens: 1024
+  timeout_s: 30
+  retry_max: 2
+  enable_thinking: false          # Qwen3 no-thinking 模式
+  graceful_degrade_to_mock: true  # 失败时自动退回 MockJudge
+
+# Anthropic 段 (备选)
+anthropic:
+  model: claude-sonnet-4-6
+  api_key_env: ANTHROPIC_API_KEY
+  temperature: 0.0
+  max_tokens: 1024
+  timeout_s: 30
+  retry_max: 2
+
+# Mock 行为 (v0.1 demo)
+mock:
+  strategy: bounds_min
+  default_evidence_count: 3
+  default_counter_evidence: "v0.1 mock 阶段, counter_evidence 占位"
+  default_confidence_adjustment: 0.0
+
+# ADR-0025 · theme_tags 禁地名 + 地标 (2026-05-21)
+# L1 prompt 必须禁止地名/地标进入 theme_tags / main_subjects
+# 真实数据上线后 IDF 替代或扩词
+theme_tags_geographic_blocklist:
+  # 城市名 (中外混)
+  - 北京
+  - 上海
+  - 杭州
+  - 苏州
+  - 广州
+  - 深圳
+  - 成都
+  - 西安
+  - beijing
+  - shanghai
+  - hangzhou
+  - suzhou
+  - guangzhou
+  - shenzhen
+  # 地标专名
+  - 故宫
+  - 长城
+  - 外滩
+  - 西湖
+  - 东方明珠
+  - 鸟巢
+  - 水立方
+  - 雷峰塔
+  - 上海中心
+  - xihu
+  - gugong
+  - great_wall
+  - bund
+  - pearl_tower
+  - bird_nest
+  - water_cube
+  - shanghai_tower
+  - leifeng
+  - forbidden_city
+  - west_lake
+  # 景区/公园专名
+  - 豫园
+  - 新天地
+  - 田子坊
+  - 陆家嘴
+  - 北海公园
+  - 越秀公园
+  - 颐和园
+  - yuyuan_garden
+  - xintiandi
+  - tianzifang
+  - lujiazui
+  - beihai_park
+  - yuexiu_park
+  - shenzhen_bay
+  # 含地名组合 (典型, 真 LLM 也可能编出)
+  - west_lake_hangzhou
+  - bund_shanghai
+  - pearl_tower_distant

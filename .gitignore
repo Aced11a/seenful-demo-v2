@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+.env
+tests/eval/reports/
+logs/
+*.log
+.DS_Store
+
+# api_harness raw 响应/run 日志(可能含 sign 等敏感 query 回显;不入 git)
+api_harness/results/

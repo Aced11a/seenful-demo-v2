@@ -1,0 +1,17 @@
+name: 'CB.14 张奶奶截图单张 vs 沉淀池 → no_backfill (截图)'
+persona: laoqi_zhang
+behavior_pattern: CB.14
+test_path: cascade
+test_type: robustness
+product_intent: 干扰截图 vs 池, 主题完全无关, no_backfill
+input:
+  new_photo: z30
+  sediment_pool:
+  - z01
+  - z03
+  - z06
+expected:
+  decision_tier: create_new_album
+invariants:
+- INV-01
+notes: 干扰反例

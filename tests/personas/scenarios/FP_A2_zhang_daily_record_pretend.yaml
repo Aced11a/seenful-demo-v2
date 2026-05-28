@@ -1,0 +1,16 @@
+name: FP.A2 张奶奶 daily_record 弱关联凑集 3 张 (跨城跨主题 但 event 一致)
+persona: laoqi_zhang
+behavior_pattern: FP.A2
+test_path: L2
+product_intent: 3 张毫无关联 (上海地铁/杭州书店/苏州街边), 但全 event=daily_record + activity=walk, 走 E.1 strong → A3 成集. **不应**成集 (红线 #5 弱关联)
+input:
+  new_photos:
+  - fz06
+  - fz07
+  - fz08
+expected:
+  display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: docs/28 A2. event_primary_share=1.0 + activity≥2/3 → E.1 strong → A3 单独成集. 当前 algorithm 无 daily_record 特殊抑制 (无 cap), 期望算法会成集 (暴露漏洞). invariant INV-01 应通过 (strong 不是 weak), 但产品意图反对.
+test_type: red_line

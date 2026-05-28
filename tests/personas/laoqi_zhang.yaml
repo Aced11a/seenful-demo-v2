@@ -1,0 +1,298 @@
+# 张奶奶 persona v0.2 (ADR-0019 v0.2 修订)
+# 40 张 / 40 天 / 标签每张 unique 真实化
+# 覆盖用户行为模式: A.1 保险拍 / A.2 周期散步 / A.4 突变自拍 / A.5 同地反复 / A.6 植物生长
+#                + D.1 截图穿插 / D.2 敏感 / D.9 高频强 event
+
+persona_id: laoqi_zhang
+
+identity:
+  name: 张奶奶
+  age: 72
+  city: 苏州
+  life_stage: retired
+  photo_style_preference: natural
+  content_topics: [flowers, family, dailylife]
+
+life_events:
+  - {date: 2026-04-05, type: balcony_routine, summary: 阳台浇花}
+  - {date: 2026-04-12, type: gathering, summary: 老同学聚餐}
+  - {date: 2026-04-15, type: shopping, summary: 商场购物}
+  - {date: 2026-04-20, type: hospital, summary: 体检}
+  - {date: 2026-04-22, type: park_walk, summary: 小区花园散步}
+  - {date: 2026-05-01, type: celebration, summary: 孙女生日}
+  - {date: 2026-05-05, type: park_walk, summary: 小区花园散步}
+
+active_state:                         # ADR-0020 字段保留 (Ace #5 现 runner 不读)
+  system_counters:
+    cumulative_active_days: 47
+    journey_day: 47
+    current_streak: 8
+    max_streak: 14
+    total_photos_uploaded: 89
+  derived_preferences: {}             # 空
+  session_state: {}                   # 空
+  behavior_cache:
+    recent_features_used: [view_album, daily_sign]
+    last_share_time: null
+  guard_flags:
+    journey_tone_used_today: false
+    greeting_sent_today: true
+
+user_model:                           # ADR-0020 Compiled Truth 字段保留 (Ace #5 现 runner 不读)
+  version: 12
+  identity:
+    nickname: {value: 张奶奶, source: persona_seed}
+    city: {value: 苏州, source: persona_seed}
+    life_stage: {value: retired, evidence_confidence: 0.9}
+  preferences: {}                     # 空 (待 v0.3 真接 User Model 时填)
+  current_state: {}                   # 空
+  companion_notes: ""
+  relationship_stage:
+    familiarity: warm
+
+# ADR-0020: Event Log (Timeline) mock 字段齐全, 现 runner 不读, 未来 LLM context 注入
+event_log:
+  - {id: evt_z01, ts: 2026-04-01T09:30, type: photo_upload, source: photo_pipeline, content: {count: 1, themes: [peony, bud, balcony], location: home}, business_date: 2026-04-01, late_arrival: false}
+  - {id: evt_z08, ts: 2026-04-08T18:00, type: photo_upload, source: photo_pipeline, content: {count: 1, themes: [meal, restaurant, friend], location: restaurant}, business_date: 2026-04-08, late_arrival: false}
+  - {id: evt_meal_chat, ts: 2026-04-12T20:00, type: life_event, source: chat_parser, content: {event_type: visit_place, description: 老同学聚餐, entities: {place: 苏州餐厅, person: 老同学}}, business_date: 2026-04-12, late_arrival: false}
+  - {id: evt_z34, ts: 2026-04-20T09:00, type: photo_upload, source: photo_pipeline, content: {count: 1, themes: [hospital, checkup], location: hospital}, business_date: 2026-04-20, late_arrival: false}
+  - {id: evt_emotion_birthday, ts: 2026-05-01T20:00, type: emotion_signal, source: chat_parser, content: {emotion: happy, intensity: strong, raw: 今天孙女生日, 很开心}, business_date: 2026-05-01, late_arrival: false}
+  - {id: evt_z38, ts: 2026-05-01T15:00, type: photo_upload, source: photo_pipeline, content: {count: 6, themes: [birthday, cake, candle], location: home}, business_date: 2026-05-01, late_arrival: false}
+  - {id: evt_preference_natural, ts: 2026-04-13T19:00, type: preference_expression, source: chat_parser, content: {dimension: photo_style, value: natural, raw: 别太艳, 自然一点就好}, business_date: 2026-04-13, late_arrival: false}
+
+# ADR-0020: Daily Digest (日级压缩) mock, 关键日子
+daily_digests:
+  - business_date: 2026-04-12
+    structured:
+      photo_count: 4
+      top_themes: [meal, friend, food]
+      locations: [restaurant]
+      mood: [warm]
+      core_events: [old_classmate_dinner]
+      people_mentioned: [classmate]
+    episodic_text: "2026年4月12日, 张奶奶跟老同学聚餐, 拍了4张餐厅照片, 整体放松温暖."
+    should_store: true
+    event_count: 4
+    frozen_at: 2026-04-13T04:00:00
+  - business_date: 2026-05-01
+    structured:
+      photo_count: 6
+      top_themes: [birthday, family, cake]
+      locations: [home]
+      mood: [warm, joyful]
+      core_events: [granddaughter_birthday]
+      people_mentioned: [granddaughter, family]
+    episodic_text: "2026年5月1日, 张奶奶在家给孙女办生日, 拍了6张照片, 温暖团圆."
+    should_store: true
+    event_count: 6
+    frozen_at: 2026-05-02T04:00:00
+  - business_date: 2026-04-20
+    structured:
+      photo_count: 3
+      top_themes: [hospital, checkup]
+      locations: [hospital]
+      mood: [quiet]
+      core_events: [annual_checkup]
+      people_mentioned: []
+    episodic_text: "2026年4月20日, 张奶奶去医院做年度体检."
+    should_store: true
+    event_count: 3
+    frozen_at: 2026-04-21T04:00:00
+
+# ═══════════════════════════════════════════════════════════════
+# 主题群 (映射到 18 用户行为模式)
+# ═══════════════════════════════════════════════════════════════
+
+groups:
+  plant_growth:                          # A.6 跟踪植物生长 (8 张, 1 盆牡丹 30 天)
+    behavior_pattern: A.6
+    description: 同一盆牡丹的 30 天生长日记
+  insurance_burst:                        # A.1 保险式重复拍 (4 张)
+    behavior_pattern: A.1
+    description: 怕拍糊, 30 秒内连拍 3 张同物
+  weekly_park_walk:                       # A.2 周期性散步 (8 张, 跨 4 周)
+    behavior_pattern: A.2
+    description: 每周固定时间小区花园散步
+  granddaughter_grab:                     # A.4 被孙女抢手机自拍 (3 张)
+    behavior_pattern: A.4
+    description: 老人手机突然多张小孩自拍
+  shopping_subzone:                       # A.5 同地反复来回 (商场 6 张)
+    behavior_pattern: A.5
+    description: 商场 1F → 3F → 1F → 4F 子区域反复
+  gathering_with_screenshots:             # D.1 截图穿插 (5 张, 3 聚餐 + 2 截图)
+    behavior_pattern: D.1
+    description: 老同学聚餐照中混 2 张微信截图
+  hospital_sensitive:                     # D.2 敏感场景 (3 张体检)
+    behavior_pattern: D.2
+    description: 体检 / 医院 sensitive_level
+  granddaughter_birthday_at_home:         # D.9 高频地点 + 强 event (6 张)
+    behavior_pattern: D.9
+    description: 家里办孙女生日 (高频地点但 celebration 真成集)
+
+  # ─── ADR-0019 v0.4 补漏场景 ──────────────────────
+  event_signal_conflict:                  # EV.1 event 多信号冲突
+    behavior_pattern: EV.1
+    description: event=celebration + activity=meal + scene=restaurant 多维冲突
+
+# ═══════════════════════════════════════════════════════════════
+# 老相册指纹 (mock, aggregate 算法单测已覆盖, 不真算)
+# ═══════════════════════════════════════════════════════════════
+
+albums:
+  weekly_park_walk_album:                 # 假设 3 月已成集的"周末花园散步"
+    title: "周末花园"
+    place_anchor_gps: [31.302, 120.593]
+    place_anchor_radius_m: 80
+    theme_clusters: [{rep: garden, freq: 6}, {rep: walk, freq: 5}, {rep: spring, freq: 4}]
+    event_agg: {primary: outing, secondary: [daily_record], tertiary: []}
+    anchors_set: [慢下来, 花香, 春意]
+    photo_count: 15
+
+  granddaughter_album:                    # 已有"孙女" 相册 (从历史聚集)
+    title: "和孙女的日子"
+    place_anchor_gps: [31.300, 120.590]   # 家
+    place_anchor_radius_m: 50
+    theme_clusters: [{rep: family, freq: 8}, {rep: granddaughter, freq: 6}, {rep: home, freq: 4}]
+    event_agg: {primary: gathering, secondary: [celebration], tertiary: []}
+    anchors_set: [团圆, 童趣, 喜庆]
+    photo_count: 22
+
+# ═══════════════════════════════════════════════════════════════
+# 40 张照片 (按时间 + 主题群分组)
+# 关键设计: 每张 unique 标签, 但同 group 内有内在共性 (语义簇可识别)
+# ═══════════════════════════════════════════════════════════════
+
+photos:
+
+  # ─── A.6 跟踪植物生长 8 张 (LLM 真实多样化, ADR-0021) ────
+  - {id: z01, ts: 2026-04-01T08:30, gps: [31.300, 120.590], theme: [bud, dewdrop, morning_light],          subjects: [bud, branch],     event: daily_record, tone: poetic,    anchors: [新生, 期待],   scene: home, activity: gardening, hf: true, group: plant_growth, narrative: 牡丹花苞初露}
+  - {id: z05, ts: 2026-04-05T09:00, gps: [31.300, 120.590], theme: [pink_petal, half_open, 牡丹],          subjects: [bud, leaf],       event: daily_record, tone: warm,      anchors: [生长],         scene: home, activity: gardening, hf: true, group: plant_growth, narrative: 牡丹半开 (中文混入)}
+  - {id: z10, ts: 2026-04-10T10:00, gps: [31.300, 120.590], theme: [peony, full_bloom, vibrant_pink, balcony_corner], subjects: [flower],   event: daily_record, tone: warm,    anchors: [盛开, 春意],   scene: home, activity: gardening, hf: true, group: plant_growth, narrative: 牡丹盛开 (4 词)}
+  - {id: z15, ts: 2026-04-15T11:00, gps: [31.300, 120.590], theme: [wilting, petals_curl],                 subjects: [flower, petal],   event: daily_record, tone: nostalgic, anchors: [凋零, 春末], scene: home, activity: gardening, hf: true, group: plant_growth, narrative: 牡丹开始凋 (2 词简短)}
+  - {id: z20, ts: 2026-04-20T15:00, gps: [31.300, 120.590], theme: [fallen_petals, soil, after_bloom],     subjects: [petal, soil],     event: daily_record, tone: nostalgic, anchors: [凋零],       scene: home, activity: gardening, hf: true, group: plant_growth, narrative: 落英满地}
+  - {id: z25, ts: 2026-04-25T09:30, gps: [31.300, 120.590], theme: [new_growth, sprout, 嫩叶],             subjects: [leaf, branch],    event: daily_record, tone: serene,    anchors: [新生, 静默], scene: home, activity: gardening, hf: true, group: plant_growth, narrative: 新叶又生 (中英混)}
+  - {id: z29, ts: 2026-04-29T10:00, gps: [31.300, 120.590], theme: [foliage, green, lush],                 subjects: [leaf, foliage],   event: daily_record, tone: serene,    anchors: [生机],       scene: home, activity: gardening, hf: true, group: plant_growth, narrative: 枝叶茂盛}
+  - {id: z32, ts: 2026-05-02T08:00, gps: [31.300, 120.590], theme: [bud, second_round, hope_again, flower_pot, balcony], subjects: [bud, leaf], event: daily_record, tone: warm,    anchors: [新生, 期待], scene: home, activity: gardening, hf: true, group: plant_growth, narrative: 又见花苞 (5 词)}
+
+  # ─── A.1 保险式重复拍 4 张 (LLM 真实多样化, ADR-0021) ───
+  - {id: z02, ts: 2026-04-02T11:30:10, gps: [31.301, 120.591], theme: [orchid, white_petal],          subjects: [flower],   event: daily_record, tone: quiet,  anchors: [清雅], scene: home, activity: gardening, hf: true, group: insurance_burst, narrative: 白兰花特写一 (2 词简短)}
+  - {id: z03, ts: 2026-04-02T11:30:25, gps: [31.301, 120.591], theme: [closeup, blur, retake],       subjects: [flower],   event: daily_record, tone: quiet,  anchors: [清雅], scene: home, activity: gardening, hf: true, group: insurance_burst, narrative: 白兰花特写二 (拍糊)}
+  - {id: z04, ts: 2026-04-02T11:30:55, gps: [31.301, 120.591], theme: [white_orchid, leaf_detail, balcony_morning], subjects: [flower, leaf], event: daily_record, tone: quiet, anchors: [清雅], scene: home, activity: gardening, hf: true, group: insurance_burst, narrative: 白兰花特写三 拍清 (3 词)}
+  - {id: z06, ts: 2026-04-06T16:00, gps: [31.300, 120.590], theme: [potted_plant, geranium, terracotta_pot], subjects: [pot, flower], event: daily_record, tone: warm, anchors: [日常], scene: home, activity: gardening, hf: true, group: insurance_burst, narrative: 天竺葵盆}
+
+  # ─── A.2 周期性散步: 每周 2-3 次小区花园, 跨 4 周 8 张 ─────
+  # GPS: 小区花园不同位置 (入口 / 玉兰道 / 池塘 / 凉亭 / 月季园 / 长椅区), 散点 50-100m
+  # event: outing/daily_record/gathering 混标 (LLM 边界 case 在这两个间纠结)
+  - {id: z07, ts: 2026-04-07T07:00, gps: [31.3022, 120.5928], theme: [garden, morning, walk, sunrise],       subjects: [path, tree],          event: outing,       tone: serene, anchors: [慢下来],         scene: outdoor, activity: walk, hf: false, group: weekly_park_walk, narrative: 周一晨练花园入口}
+  - {id: z09, ts: 2026-04-09T07:30, gps: [31.3025, 120.5934], theme: [garden, magnolia, blossom, branch],   subjects: [magnolia],            event: outing,       tone: poetic, anchors: [树影, 春意],     scene: outdoor, activity: walk, hf: false, group: weekly_park_walk, narrative: 玉兰开了}
+  - {id: z14, ts: 2026-04-14T07:15, gps: [31.3018, 120.5926], theme: [pond, koi, ripple],                   subjects: [pond, fish],          event: daily_record, tone: serene, anchors: [静默],           scene: outdoor, activity: walk, hf: false, group: weekly_park_walk, narrative: 池塘锦鲤 (蹲下看, 偏 daily)}
+  - {id: z17, ts: 2026-04-17T07:00, gps: [31.3019, 120.5938], theme: [pavilion, rest, bench],               subjects: [pavilion],            event: daily_record, tone: quiet,  anchors: [慢下来],         scene: outdoor, activity: resting, hf: false, group: weekly_park_walk, narrative: 凉亭歇脚 (休息状态)}
+  - {id: z22, ts: 2026-04-22T07:30, gps: [31.3027, 120.5931], theme: [rose, fragrance, flower],             subjects: [rose],                event: outing,       tone: warm,   anchors: [花香],           scene: outdoor, activity: walk, hf: false, group: weekly_park_walk, narrative: 月季花开特写}
+  - {id: z26, ts: 2026-04-26T07:00, gps: [31.3024, 120.5929], theme: [bench, neighbor, conversation],       subjects: [people, bench],       event: gathering,    tone: warm,   anchors: [闲聊],           scene: outdoor, activity: gathering, hf: false, group: weekly_park_walk, narrative: 跟邻居聊天}
+  - {id: z31, ts: 2026-05-01T07:00, gps: [31.3023, 120.5935], theme: [garden, sunlight, bench],             subjects: [bench, sunlight],     event: daily_record, tone: serene, anchors: [慢下来, 暖意],   scene: outdoor, activity: resting, hf: false, group: weekly_park_walk, narrative: 暖阳午后长椅 (休息)}
+  - {id: z36, ts: 2026-05-06T07:30, gps: [31.3020, 120.5933], theme: [lotus_pond, lily, summer],            subjects: [lotus, pond],         event: outing,       tone: poetic, anchors: [湖光, 夏意],     scene: outdoor, activity: walk, hf: false, group: weekly_park_walk, narrative: 荷花初现}
+
+  # ─── A.4 被孙女抢手机自拍 3 张 (LLM 真实多样化, ADR-0021) ──
+  - {id: z11, ts: 2026-04-11T15:30, gps: [31.300, 120.590], theme: [child_face, close_shot, blur],            subjects: [child_face],  event: daily_record, tone: warm, anchors: [童趣],   scene: home, activity: resting, hf: true, group: granddaughter_grab, narrative: 孙女抢手机自拍一, people: single}
+  - {id: z12, ts: 2026-04-11T15:30:30, gps: [31.300, 120.590], theme: [child, funny_filter, app_sticker, 自拍], subjects: [child_face],  event: daily_record, tone: warm, anchors: [童趣],   scene: home, activity: resting, hf: true, group: granddaughter_grab, narrative: 孙女自拍加贴纸 (4 词 中文混), people: single}
+  - {id: z13, ts: 2026-04-11T15:31, gps: [31.300, 120.590], theme: [hand_gesture, child],                     subjects: [child_face, hand], event: daily_record, tone: warm, anchors: [童趣], scene: home, activity: resting, hf: true, group: granddaughter_grab, narrative: 孙女自拍鬼脸 (2 词), people: single}
+
+  # ─── A.5 商场反复来回 6 张 (LLM 真实多样化 ADR-0021) ────────
+  - {id: z18, ts: 2026-04-15T14:00, gps: [31.310, 120.605], theme: [shelves, packaged_goods, fluorescent], subjects: [shelf],       event: daily_record, tone: neutral, anchors: [日常], scene: indoor, activity: walk, hf: false, group: shopping_subzone, narrative: "商场 1F 超市 (主体: 货架灯光)"}
+  - {id: z19, ts: 2026-04-15T14:30, gps: [31.310, 120.605], theme: [boutique, mannequin],         subjects: [clothing],    event: daily_record, tone: neutral, anchors: [],     scene: indoor, activity: walk, hf: false, group: shopping_subzone, narrative: 3F 服装店 (橱窗模特)}
+  - {id: z21, ts: 2026-04-15T15:00, gps: [31.310, 120.605], theme: [tea_set, ceramic, display, 茶具],     subjects: [teaware],     event: daily_record, tone: warm,    anchors: [],     scene: indoor, activity: walk, hf: false, group: shopping_subzone, narrative: 3F 茶具店 (中文混)}
+  - {id: z23, ts: 2026-04-15T15:30, gps: [31.310, 120.605], theme: [food_court, lunch, noodle],   subjects: [food],        event: meal, tone: warm,         anchors: [],     scene: indoor, activity: meal, hf: false, group: shopping_subzone, narrative: 美食广场吃面}
+  - {id: z24, ts: 2026-04-15T16:30, gps: [31.310, 120.605], theme: [bookstore, page, reading_nook, quiet], subjects: [book, shelf], event: daily_record, tone: serene, anchors: [慢下来], scene: indoor, activity: resting, hf: false, group: shopping_subzone, narrative: 4F 书店翻书 (4 个 theme)}
+  - {id: z27, ts: 2026-04-15T17:00, gps: [31.310, 120.605], theme: [exit_sign, sunlight],         subjects: [door, light], event: daily_record, tone: neutral, anchors: [], scene: indoor, activity: walk, hf: false, group: shopping_subzone, narrative: 出口阳光 (只 2 个 theme, LLM 简短)}
+
+  # ─── D.1 截图穿插聚餐 5 张 (3 聚餐 + 2 截图) ───────────────
+  - {id: z08, ts: 2026-04-08T18:00, gps: [31.305, 120.622], theme: [meal, restaurant, friend],    subjects: [dish, friend], event: meal, tone: warm,  anchors: [团聚], scene: restaurant, activity: meal, hf: false, group: gathering_with_screenshots, narrative: 老同学聚餐主桌, people: group}
+  - {id: z16, ts: 2026-04-16T18:30, gps: [31.305, 120.622], theme: [meal, dish, cuisine],         subjects: [dish],          event: meal, tone: warm,  anchors: [],     scene: restaurant, activity: meal, hf: false, group: gathering_with_screenshots, narrative: 聚餐红烧肉特写, people: group}
+  - {id: z28, ts: 2026-04-28T18:45, gps: [31.305, 120.622], theme: [meal, group_photo, friends],  subjects: [friend, table], event: meal, tone: warm,  anchors: [团聚], scene: restaurant, activity: meal, hf: false, group: gathering_with_screenshots, narrative: 聚餐合影, people: group}
+  - {id: z30, ts: 2026-04-30T20:00, gps: [31.300, 120.590], theme: [screenshot, wechat, text],    subjects: [text, chat],    event: daily_record, tone: neutral, anchors: [], scene: indoor, activity: resting, hf: true, group: gathering_with_screenshots, narrative: 微信聊天截图存信息}
+  - {id: z33, ts: 2026-05-03T19:30, gps: [31.300, 120.590], theme: [screenshot, recipe, app],     subjects: [text, image],   event: daily_record, tone: neutral, anchors: [], scene: indoor, activity: resting, hf: true, group: gathering_with_screenshots, narrative: 美食 app 食谱截图}
+
+  # ─── D.2 敏感: 体检医院 3 张 (LLM 真实多样化, ADR-0021) ──
+  - {id: z34, ts: 2026-04-20T09:00, gps: [31.295, 120.580], theme: [waiting_room, queue_sign],                subjects: [chair, sign],   event: daily_record, tone: quiet, anchors: [], scene: indoor, activity: resting, hf: false, sensitive: medium, group: hospital_sensitive, narrative: 体检候诊区 (2 词避开 hospital 直接词)}
+  - {id: z35, ts: 2026-04-20T10:30, gps: [31.295, 120.580], theme: [bandage, arm, clinic, white_coat],        subjects: [bandage, arm],  event: daily_record, tone: quiet, anchors: [], scene: indoor, activity: resting, hf: false, sensitive: medium, group: hospital_sensitive, narrative: 抽血后包扎 (4 词)}
+  - {id: z37, ts: 2026-04-20T12:00, gps: [31.295, 120.580], theme: [medicine_box, 药品, prescription],         subjects: [box, label],   event: daily_record, tone: quiet, anchors: [], scene: indoor, activity: resting, hf: false, sensitive: medium, group: hospital_sensitive, narrative: 取药 (中英混)}
+
+  # ─── D.9 家生日 6 张 (LLM 真实多样化, ADR-0021) ─────────
+  - {id: z38, ts: 2026-05-01T15:00, gps: [31.300, 120.590], theme: [chocolate_cake, candles, decoration], subjects: [cake, candle], event: celebration, tone: warm, anchors: [喜庆, 团圆], scene: home, activity: gathering, hf: true, group: granddaughter_birthday_at_home, narrative: 生日蛋糕特写, people: family_like}
+  - {id: z39, ts: 2026-05-01T15:15, gps: [31.300, 120.590], theme: [child_unwrapping, gift_box, ribbon], subjects: [child, gift], event: celebration, tone: warm, anchors: [团圆],     scene: home, activity: gathering, hf: true, group: granddaughter_birthday_at_home, narrative: 孙女拆礼物, people: family_like}
+  - {id: z40, ts: 2026-05-01T15:30, gps: [31.300, 120.590], theme: [family_dinner, dishes, round_table, 围坐], subjects: [family, dish], event: celebration, tone: warm, anchors: [团圆],     scene: home, activity: gathering, hf: true, group: granddaughter_birthday_at_home, narrative: 全家围桌 (4 词 中文)}
+  - {id: z41, ts: 2026-05-01T16:00, gps: [31.300, 120.590], theme: [blowing_candle, child_face],         subjects: [child, cake],  event: celebration, tone: warm, anchors: [喜庆, 童趣], scene: home, activity: gathering, hf: true, group: granddaughter_birthday_at_home, narrative: 孙女吹蜡烛 (2 词)}
+  - {id: z42, ts: 2026-05-01T17:00, gps: [31.300, 120.590], theme: [home_dinner, dishes, chopsticks, 家宴], subjects: [dish, table], event: meal,        tone: warm, anchors: [团圆],     scene: home, activity: meal,     hf: true, group: granddaughter_birthday_at_home, narrative: 家宴}
+  - {id: z43, ts: 2026-05-01T18:30, gps: [31.300, 120.590], theme: [hug, farewell, dusk_light],           subjects: [people, hug], event: gathering,   tone: warm, anchors: [团圆, 暖意], scene: home, activity: gathering, hf: true, group: granddaughter_birthday_at_home, narrative: 临别拥抱, people: family_like}
+
+  # ─── v0.4 补漏: EV.1 event 多信号冲突 3 张 ────────
+  - {id: z44, ts: 2026-05-04T19:00, gps: [31.305, 120.620], theme: [private_room, balloon_decor, anniversary_dinner], subjects: [cake, dish, balloon], event: celebration, tone: warm, anchors: [喜庆, 团圆], scene: restaurant, activity: meal, hf: false, group: event_signal_conflict, narrative: 餐厅周年庆 (event/activity/scene 多信号冲突), people: family_like}
+  - {id: z45, ts: 2026-05-04T19:30, gps: [31.305, 120.620], theme: [candlelight, gourmet_dish, gift_box, 烛光], subjects: [candle, dish, balloon, gift], event: celebration, tone: warm, anchors: [喜庆], scene: restaurant, activity: meal, hf: false, group: event_signal_conflict, narrative: 周年烛光 (4 词)}
+  - {id: z46, ts: 2026-05-04T20:00, gps: [31.305, 120.620], theme: [embrace, joy_moment],                            subjects: [people, hug, cake], event: celebration, tone: warm, anchors: [团圆], scene: restaurant, activity: gathering, hf: false, group: event_signal_conflict, narrative: 餐厅拥抱 (2 词), people: family_like}
+
+  # ─── docs/28 假阳反例测试专用 photos (FP_*, v0.12) ──────
+  # FP_A1 · 流水账类高频早餐店 5 张 (家附近 hf=true)
+  - {id: fz01, ts: 2026-05-05T07:30, gps: [31.300, 120.590], theme: [baozi, soy_milk, breakfast],   subjects: [bun, drink],   event: meal, tone: warm, anchors: [], scene: indoor, activity: meal, hf: true, group: fp_breakfast_daily, narrative: 周一早餐包子豆浆}
+  - {id: fz02, ts: 2026-05-06T07:30, gps: [31.300, 120.590], theme: [you_tiao, congee, morning],    subjects: [bun, drink],   event: meal, tone: warm, anchors: [], scene: indoor, activity: meal, hf: true, group: fp_breakfast_daily, narrative: 周二早餐油条粥}
+  - {id: fz03, ts: 2026-05-07T07:25, gps: [31.300, 120.590], theme: [breakfast, baozi, soy_milk],   subjects: [bun, drink],   event: meal, tone: warm, anchors: [], scene: indoor, activity: meal, hf: true, group: fp_breakfast_daily, narrative: 周三早餐又是包子}
+  - {id: fz04, ts: 2026-05-08T07:30, gps: [31.300, 120.590], theme: [breakfast, dim_sum],           subjects: [dish, drink],  event: meal, tone: warm, anchors: [], scene: indoor, activity: meal, hf: true, group: fp_breakfast_daily, narrative: 周四早餐点心}
+  - {id: fz05, ts: 2026-05-09T07:35, gps: [31.300, 120.590], theme: [baozi, breakfast, congee],     subjects: [bun, dish],    event: meal, tone: warm, anchors: [], scene: indoor, activity: meal, hf: true, group: fp_breakfast_daily, narrative: 周五早餐包子粥}
+
+  # FP_A2 · daily_record 弱关联凑集 3 张 (跨城市跨主题 但 event 一致)
+  - {id: fz06, ts: 2026-05-10T09:00, gps: [31.230, 121.470], theme: [subway_card, commute_morning], subjects: [card, gate],   event: daily_record, tone: neutral, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_daily_pretend, narrative: 上海地铁刷卡}
+  - {id: fz07, ts: 2026-05-13T14:00, gps: [30.260, 120.150], theme: [bookstore_corner, page_flip],  subjects: [book, shelf],  event: daily_record, tone: neutral, anchors: [], scene: indoor, activity: walk, hf: false, group: fp_daily_pretend, narrative: 杭州书店翻书}
+  - {id: fz08, ts: 2026-05-17T11:00, gps: [31.305, 120.622], theme: [umbrella_rain, puddle_street], subjects: [umbrella, street], event: daily_record, tone: neutral, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_daily_pretend, narrative: 苏州雨天路边}
+
+  # FP_A5 · 多次同餐厅 5 张 (跨 4 个月不同次聚餐)
+  - {id: fz09, ts: 2026-01-15T18:00, gps: [31.308, 120.625], theme: [hotpot, friends_gathering],    subjects: [pot, dish],    event: meal, tone: warm, anchors: [团聚], scene: restaurant, activity: meal, hf: false, group: fp_repeat_restaurant, narrative: 1 月火锅聚餐, people: group}
+  - {id: fz10, ts: 2026-02-20T19:00, gps: [31.308, 120.625], theme: [hotpot, mutton_dish],           subjects: [pot, dish],    event: meal, tone: warm, anchors: [团聚], scene: restaurant, activity: meal, hf: false, group: fp_repeat_restaurant, narrative: 2 月火锅同地点, people: group}
+  - {id: fz11, ts: 2026-03-18T18:30, gps: [31.308, 120.625], theme: [hotpot, beef_dish, friends],    subjects: [dish, friend], event: meal, tone: warm, anchors: [团聚], scene: restaurant, activity: meal, hf: false, group: fp_repeat_restaurant, narrative: 3 月火锅, people: group}
+  - {id: fz12, ts: 2026-04-22T19:30, gps: [31.308, 120.625], theme: [hotpot, group_photo, dish],     subjects: [dish, friend], event: meal, tone: warm, anchors: [团聚], scene: restaurant, activity: meal, hf: false, group: fp_repeat_restaurant, narrative: 4 月火锅合影, people: group}
+  - {id: fz13, ts: 2026-05-15T18:00, gps: [31.308, 120.625], theme: [hotpot, friends, dinner],        subjects: [pot, dish],   event: meal, tone: warm, anchors: [团聚], scene: restaurant, activity: meal, hf: false, group: fp_repeat_restaurant, narrative: 5 月火锅, people: group}
+
+  # FP_B1 · stoplist 不全 5 张 (跨地跨主题 + subjects 都是 stoplist 外泛词)
+  - {id: fz14, ts: 2026-05-11T10:00, gps: [31.230, 121.470], theme: [city_corner, traffic_light],   subjects: [stuff, item],  event: daily_record, tone: neutral, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_generic_subject, narrative: 上海街角}
+  - {id: fz15, ts: 2026-05-16T14:00, gps: [30.250, 120.140], theme: [garden_path, lakeside_view],   subjects: [thing, stuff], event: outing, tone: poetic, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_generic_subject, narrative: 杭州西湖路}
+  - {id: fz16, ts: 2026-05-21T11:00, gps: [22.540, 114.060], theme: [hk_skyline, neon_sign],         subjects: [item, thing],  event: outing, tone: vibrant, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_generic_subject, narrative: 香港街景}
+  - {id: fz17, ts: 2026-05-26T09:00, gps: [39.910, 116.400], theme: [cityscape_hutong, gray_brick],   subjects: [stuff, item],  event: outing, tone: quiet, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_generic_subject, narrative: 北京胡同}
+  - {id: fz18, ts: 2026-05-30T15:00, gps: [23.130, 113.260], theme: [cityscape_park, banyan_tree], subjects: [thing, item],  event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_generic_subject, narrative: 广州公园}
+
+  # FP_B3 · event activity 同 walk 钻 5 张 (event 各异, activity 都 walk → E.1 应**不**通过)
+  - {id: fz19, ts: 2026-05-15T09:00, gps: [31.300, 120.590], theme: [breakfast_buffet],             subjects: [dish],         event: meal,         tone: warm, anchors: [], scene: restaurant, activity: walk, hf: false, group: fp_activity_same_walk, narrative: 早餐自助 (但走着拍)}
+  - {id: fz20, ts: 2026-05-15T11:00, gps: [31.310, 120.605], theme: [office_meeting],              subjects: [chair, screen], event: work,        tone: serious, anchors: [], scene: indoor, activity: walk, hf: false, group: fp_activity_same_walk, narrative: 办公室走动}
+  - {id: fz21, ts: 2026-05-15T13:00, gps: [31.320, 120.620], theme: [park_walk_alone],              subjects: [tree, path],   event: outing,      tone: serene, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_activity_same_walk, narrative: 公园散步}
+  - {id: fz22, ts: 2026-05-15T15:00, gps: [31.305, 120.622], theme: [tea_room_chat, friend],         subjects: [tea, friend],  event: gathering,   tone: warm, anchors: [], scene: indoor, activity: walk, hf: false, group: fp_activity_same_walk, narrative: 茶室聚会 (在走)}
+  - {id: fz23, ts: 2026-05-15T17:00, gps: [31.302, 120.595], theme: [grocery_aisle, vegetable],     subjects: [bag, food],    event: daily_record, tone: neutral, anchors: [], scene: indoor, activity: walk, hf: false, group: fp_activity_same_walk, narrative: 超市买菜}
+
+  # FP_B4 · outing 凑 strong 5 张 (跨地 4 个城市 + event 都 outing + activity 都 walk → E.1 通过, 应假阳)
+  - {id: fz24, ts: 2026-05-16T10:00, gps: [31.230, 121.470], theme: [riverbank, waterfront],    subjects: [river, building], event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_outing_cheat, narrative: 上海外滩散步}
+  - {id: fz25, ts: 2026-05-17T11:00, gps: [30.260, 120.150], theme: [lake, willow],   subjects: [tree, lake],   event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_outing_cheat, narrative: 杭州西湖散步}
+  - {id: fz26, ts: 2026-05-18T09:30, gps: [22.540, 114.060], theme: [bay_promenade],       subjects: [sea, sky],     event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_outing_cheat, narrative: 深圳湾散步}
+  - {id: fz27, ts: 2026-05-19T15:00, gps: [39.910, 116.400], theme: [park],          subjects: [pavilion, lake], event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_outing_cheat, narrative: 北京北海散步}
+  - {id: fz28, ts: 2026-05-20T16:30, gps: [23.130, 113.260], theme: [park],        subjects: [tree, lake],   event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_outing_cheat, narrative: 广州越秀散步}
+
+  # FP_B5 · T1.5 连拍 3 张 (30 min 间隔, events=3 紧邻 → 应升 strong)
+  - {id: fz29, ts: 2026-05-21T14:00, gps: [31.300, 120.590], theme: [orchid_pot_a],                 subjects: [flower, pot],  event: daily_record, tone: poetic, anchors: [], scene: home, activity: gardening, hf: true, group: fp_burst_3_events, narrative: 兰花 A 角度}
+  - {id: fz30, ts: 2026-05-21T14:30, gps: [31.300, 120.590], theme: [orchid_pot_b],                 subjects: [flower, leaf], event: daily_record, tone: poetic, anchors: [], scene: home, activity: gardening, hf: true, group: fp_burst_3_events, narrative: 兰花 B 角度}
+  - {id: fz31, ts: 2026-05-21T15:00, gps: [31.300, 120.590], theme: [orchid_pot_c],                 subjects: [flower, root], event: daily_record, tone: poetic, anchors: [], scene: home, activity: gardening, hf: true, group: fp_burst_3_events, narrative: 兰花 C 角度}
+
+  # FP_B6 · anchor 自由编 5 张 (无关 GPS 主题, 但 anchor 都标 "故乡童年")
+  - {id: fz32, ts: 2026-05-22T10:00, gps: [31.230, 121.470], theme: [city_traffic],                  subjects: [car, sign],    event: daily_record, tone: neutral, anchors: [故乡, 童年], scene: outdoor, activity: walk, hf: false, group: fp_anchor_freetext, narrative: 上海街道随手}
+  - {id: fz33, ts: 2026-05-22T14:00, gps: [30.250, 120.140], theme: [lake_evening],                  subjects: [water, light], event: outing, tone: poetic, anchors: [故乡, 童年], scene: outdoor, activity: walk, hf: false, group: fp_anchor_freetext, narrative: 杭州湖边}
+  - {id: fz34, ts: 2026-05-23T08:00, gps: [22.540, 114.060], theme: [highway_morning],               subjects: [road, sign],   event: daily_record, tone: serene, anchors: [故乡, 童年], scene: outdoor, activity: walk, hf: false, group: fp_anchor_freetext, narrative: 深圳高速}
+  - {id: fz35, ts: 2026-05-23T11:00, gps: [39.910, 116.400], theme: [office_window],                 subjects: [window, desk], event: work, tone: serious, anchors: [故乡, 童年], scene: indoor, activity: walk, hf: false, group: fp_anchor_freetext, narrative: 北京办公室}
+  - {id: fz36, ts: 2026-05-24T16:00, gps: [23.130, 113.260], theme: [shop_window],                   subjects: [window, items], event: daily_record, tone: warm, anchors: [故乡, 童年], scene: outdoor, activity: walk, hf: false, group: fp_anchor_freetext, narrative: 广州橱窗}
+
+  # FP_B7 · location 9.9km 边界 5 张 (3 张同 GPS + 2 张 9.9km 远)
+  - {id: fz37, ts: 2026-05-25T10:00, gps: [31.300, 120.590], theme: [garden_path],                  subjects: [path, tree],   event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_location_buffer_edge, narrative: 苏州城南公园 A}
+  - {id: fz38, ts: 2026-05-25T11:00, gps: [31.301, 120.591], theme: [pond_lotus],                   subjects: [pond, lotus],  event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_location_buffer_edge, narrative: 苏州城南公园 B}
+  - {id: fz39, ts: 2026-05-25T12:00, gps: [31.299, 120.589], theme: [stone_bridge],                 subjects: [bridge, water], event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_location_buffer_edge, narrative: 苏州城南公园 C}
+  - {id: fz40, ts: 2026-05-25T15:00, gps: [31.388, 120.589], theme: [city_north_plaza],             subjects: [plaza, statue], event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_location_buffer_edge, narrative: 苏州城北 9.9km 外}
+  - {id: fz41, ts: 2026-05-25T16:00, gps: [31.389, 120.590], theme: [city_north_park],              subjects: [tree, path],   event: outing, tone: warm, anchors: [], scene: outdoor, activity: walk, hf: false, group: fp_location_buffer_edge, narrative: 苏州城北公园 9.9km 外}
+
+  # FP_B11 · HFP 误标 5 张 (家附近 GPS 但 hf=false, 应降未降)
+  - {id: fz42, ts: 2026-05-26T18:00, gps: [31.300, 120.590], theme: [home_kitchen_dish],           subjects: [dish, bowl],   event: meal, tone: warm, anchors: [], scene: indoor, activity: meal, hf: false, group: fp_hfp_mismarked, narrative: 家里晚饭 1 (hf 漏标)}
+  - {id: fz43, ts: 2026-05-27T18:30, gps: [31.300, 120.590], theme: [home_table_food],              subjects: [dish, bowl],   event: meal, tone: warm, anchors: [], scene: indoor, activity: meal, hf: false, group: fp_hfp_mismarked, narrative: 家里晚饭 2}
+  - {id: fz44, ts: 2026-05-28T18:00, gps: [31.300, 120.590], theme: [home_dinner_simple],           subjects: [dish, bowl],   event: meal, tone: warm, anchors: [], scene: indoor, activity: meal, hf: false, group: fp_hfp_mismarked, narrative: 家里晚饭 3}
+  - {id: fz45, ts: 2026-05-29T18:00, gps: [31.300, 120.590], theme: [home_kitchen],                 subjects: [dish, bowl],   event: meal, tone: warm, anchors: [], scene: indoor, activity: meal, hf: false, group: fp_hfp_mismarked, narrative: 家里晚饭 4}
+  - {id: fz46, ts: 2026-05-30T18:30, gps: [31.300, 120.590], theme: [home_meal_simple],             subjects: [dish, bowl],   event: meal, tone: warm, anchors: [], scene: indoor, activity: meal, hf: false, group: fp_hfp_mismarked, narrative: 家里晚饭 5}

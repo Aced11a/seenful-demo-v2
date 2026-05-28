@@ -1,0 +1,20 @@
+name: B.7 李叔叔接外孙女 5 天连续高频时间地点
+persona: laoli_youke
+behavior_pattern: B.7
+test_path: L2
+product_intent: 每天同一时间同一地点接娃, 不应单独成集 (高频地点 + 例行)
+input:
+  new_photos:
+  - l34
+  - l35
+  - l36
+  - l37
+  - l38
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-03
+notes: 5 天每天 15:30 学校门口, 极高频. HR-POST-03 应阻断
+test_type: robustness

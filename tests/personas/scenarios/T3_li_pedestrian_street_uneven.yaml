@@ -1,0 +1,19 @@
+name: '#3 李叔叔步行街密度不均 6 张 (3 密 + 3 稀)'
+persona: laoli_youke
+behavior_pattern: T.3
+test_path: L2
+product_intent: '步行街内密度不均: 网红店 3 张密集 (3 分钟) + 普通段 3 张稀疏, DBSCAN eps 难适配'
+input:
+  new_photos:
+  - l59
+  - l60
+  - l61
+  - l62
+  - l63
+  - l64
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 高楼漂移 + 密度不均
+test_type: robustness

@@ -1,0 +1,23 @@
+name: A.6 张奶奶跟踪植物生长 30 天 8 张
+persona: laoqi_zhang
+behavior_pattern: A.6
+test_path: L2
+product_intent: 跟踪 1 盆牡丹 30 天日记, 应识别为持续记录 (跨长时同主题)
+input:
+  new_photos:
+  - z01
+  - z05
+  - z10
+  - z15
+  - z20
+  - z25
+  - z29
+  - z32
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: 同盆牡丹从花苞到凋零再到新生, time 跨 30+ 天 + theme 一致 + location 同 (高频). 看算法判断
+test_type: robustness

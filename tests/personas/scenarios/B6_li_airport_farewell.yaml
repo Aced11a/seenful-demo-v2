@@ -1,0 +1,23 @@
+name: B.6 李叔叔送女儿机场 + 回程 8 张
+persona: laoli_youke
+behavior_pattern: B.6
+test_path: L2
+product_intent: 机场 5 + 地铁 3, 同一段送行行程应被识别 (即使分两个 location)
+input:
+  new_photos:
+  - l26
+  - l27
+  - l28
+  - l29
+  - l30
+  - l31
+  - l32
+  - l33
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: event=gathering+outing+daily_record 混合, theme 跨 airport/metro/home
+test_type: robustness

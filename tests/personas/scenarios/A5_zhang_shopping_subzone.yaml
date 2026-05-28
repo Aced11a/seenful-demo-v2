@@ -1,0 +1,21 @@
+name: A.5 张奶奶商场反复来回 6 张子区域
+persona: laoqi_zhang
+behavior_pattern: A.5
+test_path: L2
+product_intent: 商场内不同子区域反复来回, 应被聚成一集 (子区域内不应散沙)
+input:
+  new_photos:
+  - z18
+  - z19
+  - z21
+  - z23
+  - z24
+  - z27
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: 同一商场 1F-3F-1F-4F, theme 各不同但 GPS 同. 看 location 是否能拢起来
+test_type: robustness

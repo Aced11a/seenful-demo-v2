@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Seenful L2 测试看板 (ADR-0019 v0.4)</title>
+<style>
+:root {
+  --bg: #fafafa;
+  --card-bg: #ffffff;
+  --border: #e0e0e0;
+  --text: #1a1a1a;
+  --muted: #777;
+  --accent: #2563eb;
+  --success: #16a34a;
+  --warning: #ea580c;
+  --danger: #dc2626;
+  --code-bg: #f5f5f5;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg); color: var(--text);
+  font-size: 14px; line-height: 1.5;
+  padding: 20px;
+}
+.header {
+  max-width: 1400px; margin: 0 auto 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.header h1 { font-size: 20px; }
+.header .meta { color: var(--muted); font-size: 12px; }
+.toolbar {
+  max-width: 1400px; margin: 0 auto 20px;
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  background: var(--card-bg); padding: 12px; border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.stat-pill {
+  background: var(--code-bg); padding: 4px 10px; border-radius: 12px;
+  font-size: 12px; color: var(--muted);
+}
+.filter-btn {
+  background: var(--card-bg); border: 1px solid var(--border);
+  padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
+}
+.filter-btn:hover { background: #f0f0f0; }
+.filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+input[type="text"] {
+  border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px;
+  width: 240px; font-size: 13px;
+}
+.container { max-width: 1400px; margin: 0 auto; }
+
+.scenario-card {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: 10px; overflow: hidden;
+}
+.scenario-header {
+  padding: 12px 16px; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.scenario-header:hover { background: #f9f9f9; }
+.scenario-title { font-weight: 600; font-size: 14px; }
+.scenario-meta {
+  display: flex; gap: 8px; align-items: center; font-size: 12px;
+}
+.tag {
+  background: var(--code-bg); padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; color: var(--muted);
+}
+.tag.pattern { background: #ede9fe; color: #6d28d9; }
+.tag.persona { background: #dbeafe; color: #1d4ed8; }
+.tag.path { background: #d1fae5; color: #065f46; }
+.tag.status-pending { background: #fef3c7; color: #92400e; }
+.tag.status-approved { background: #d1fae5; color: #065f46; }
+.tag.status-flagged { background: #fee2e2; color: #991b1b; }
+.tag.match-pass { background: #d1fae5; color: #065f46; }
+.tag.match-fail { background: #fee2e2; color: #991b1b; }
+.tag.match-acc  { background: #fef3c7; color: #92400e; }
+.tag.match-na { background: var(--code-bg); color: var(--muted); }
+
+.scenario-body { display: none; padding: 16px; border-top: 1px solid var(--border); }
+.scenario-card.expanded .scenario-body { display: block; }
+.scenario-card.expanded .scenario-header { background: #f9f9f9; }
+
+.section { margin-bottom: 16px; }
+.section-title {
+  font-weight: 600; font-size: 13px; color: var(--text);
+  padding: 6px 0; border-bottom: 1px solid var(--border); margin-bottom: 8px;
+}
+.section-title .icon { margin-right: 6px; }
+
+.intent { background: #fefce8; padding: 10px 12px; border-left: 3px solid #ca8a04; border-radius: 4px; font-style: italic; color: #713f12; }
+
+.photos-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+.photo-card {
+  background: var(--code-bg); padding: 8px 10px; border-radius: 6px; font-size: 12px;
+}
+.photo-card .pid { font-weight: 600; color: var(--accent); }
+.photo-card .narr { color: var(--text); margin: 2px 0; }
+.photo-card .tags { color: var(--muted); }
+.photo-card.recalled { background: #ecfdf5; border-left: 3px solid var(--success); }
+.photo-card.recalled .pid { color: var(--success); }
+.photo-card.not-recalled { opacity: 0.55; }
+
+.cascade-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+.cascade-table th, .cascade-table td {
+  padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: left;
+}
+.cascade-table th { background: var(--code-bg); color: var(--muted); font-size: 11px; }
+.cascade-table tr.sel { background: #ecfdf5; }
+.cascade-table tr.fail { background: #fef2f2; }
+.cascade-table .ok { color: var(--success); font-weight: 600; }
+.cascade-table .no { color: var(--muted); }
+
+.memory-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+.memory-card {
+  background: #f5f3ff; padding: 10px; border-radius: 6px; font-size: 12px;
+  border: 1px solid #e9d5ff;
+}
+.memory-card .key { font-weight: 600; color: #6d28d9; }
+
+.bands-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.bands-table th, .bands-table td {
+  padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: left;
+}
+.bands-table th { background: var(--code-bg); font-size: 12px; color: var(--muted); }
+.band-cell { font-weight: 600; cursor: pointer; user-select: none; }
+.band-strong { color: var(--success); }
+.band-medium { color: #ca8a04; }
+.band-weak { color: var(--warning); }
+.band-none { color: var(--muted); }
+.band-cell .arrow { font-size: 10px; margin-left: 4px; }
+.band-detail {
+  display: none; padding: 10px; background: #fafafa;
+  font-family: monospace; font-size: 11px; white-space: pre-wrap;
+  border-radius: 4px; margin-top: 6px;
+}
+.band-detail.show { display: block; }
+
+.llm-block {
+  background: #fef3c7; padding: 12px; border-radius: 6px; font-size: 13px;
+}
+.llm-block .label { font-weight: 600; color: #92400e; }
+.llm-block .reason { margin: 4px 0; }
+.llm-block.skipped { background: var(--code-bg); color: var(--muted); }
+
+.decision-block {
+  background: #ecfdf5; padding: 12px; border-radius: 6px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px;
+  font-size: 13px;
+}
+.decision-block .k { color: var(--muted); font-size: 11px; }
+.decision-block .v { font-weight: 600; }
+
+.compare {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  background: #f0f9ff; padding: 12px; border-radius: 6px;
+}
+.compare .col { font-size: 13px; }
+.compare .label { color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+.compare .empty { color: var(--muted); font-style: italic; }
+
+.violations { background: #fee2e2; padding: 10px; border-radius: 6px; font-size: 12px; color: #991b1b; }
+.violations.ok { background: #d1fae5; color: #065f46; }
+
+.review-block {
+  background: var(--card-bg); border: 2px solid var(--border);
+  padding: 12px; border-radius: 6px;
+}
+.review-buttons { display: flex; gap: 8px; margin-bottom: 8px; }
+.review-btn {
+  padding: 6px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid; font-size: 13px; font-weight: 600;
+}
+.review-btn.approve { background: white; border-color: var(--success); color: var(--success); }
+.review-btn.approve.active { background: var(--success); color: white; }
+.review-btn.flag { background: white; border-color: var(--danger); color: var(--danger); }
+.review-btn.flag.active { background: var(--danger); color: white; }
+.review-btn.reset { background: white; border-color: var(--muted); color: var(--muted); }
+textarea.review-note {
+  width: 100%; min-height: 60px; padding: 8px;
+  border: 1px solid var(--border); border-radius: 4px;
+  font-family: inherit; font-size: 13px; resize: vertical;
+}
+
+.empty-state {
+  text-align: center; padding: 40px; color: var(--muted);
+}
+
+/* === ADR v0.6 可视化工具 (默认折叠, 点击渲染) === */
+.viz-toolbar {
+  display: flex; gap: 6px; margin: 8px 0; flex-wrap: wrap;
+}
+.viz-btn {
+  background: var(--card-bg); border: 1px dashed #cbd5e1;
+  padding: 4px 12px; border-radius: 14px; cursor: pointer;
+  font-size: 12px; color: #475569;
+}
+.viz-btn:hover { background: #f1f5f9; border-style: solid; }
+.viz-btn.active { background: #dbeafe; border-color: var(--accent); color: var(--accent); }
+.viz-panel {
+  display: none; padding: 10px; background: #fafafa;
+  border: 1px solid var(--border); border-radius: 6px; margin-top: 6px;
+}
+.viz-panel.show { display: block; }
+.viz-panel canvas { display: block; max-width: 100%; }
+.viz-legend { font-size: 11px; color: var(--muted); margin-top: 6px; }
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; }
+.tag-cloud .tc-item {
+  padding: 3px 8px; border-radius: 10px; font-size: 11px;
+  background: #e0e7ff; color: #3730a3;
+}
+.tag-cloud .tc-item.shared { background: #fde68a; color: #92400e; font-weight: 600; }
+
+pre.json {
+  background: var(--code-bg); padding: 8px;
+  font-family: monospace; font-size: 11px;
+  border-radius: 4px; overflow-x: auto;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔬 Seenful L2 测试看板 <span style="color:var(--muted);font-size:13px;">v0.4</span></h1>
+  <div class="meta" id="meta-info">加载中…</div>
+</div>
+
+<div class="toolbar">
+  <span class="stat-pill" id="stat-total">总计 -</span>
+  <span class="stat-pill" id="stat-pass">通过 -</span>
+  <span class="stat-pill" id="stat-fail">不符预期 -</span>
+  <span class="stat-pill" id="stat-reviewed">已审核 -</span>
+  <span class="stat-pill" id="stat-flagged">已标记 -</span>
+  <div style="flex:1;"></div>
+  <input type="text" id="search" placeholder="🔍 搜索 scenario…">
+</div>
+
+<div class="toolbar">
+  <span style="font-size:12px;color:var(--muted);">分类:</span>
+  <button class="filter-btn category active" data-cat="all">全部</button>
+  <button class="filter-btn category" data-cat="A">A · 老人</button>
+  <button class="filter-btn category" data-cat="B">B · 中年</button>
+  <button class="filter-btn category" data-cat="C">C · 年轻</button>
+  <button class="filter-btn category" data-cat="D">D · 通用</button>
+  <button class="filter-btn category" data-cat="T">T · 旅游分布</button>
+  <button class="filter-btn category" data-cat="TH">TH · theme 补漏</button>
+  <button class="filter-btn category" data-cat="EV">EV · event 补漏</button>
+  <button class="filter-btn category" data-cat="ANC">ANC · anchor 补漏</button>
+  <button class="filter-btn category" data-cat="L25">L25 · L2.5 path A</button>
+  <button class="filter-btn category" data-cat="CB">CB · 回扫 cascade</button>
+  <button class="filter-btn category" data-cat="FP">FP · 假阳反例</button>
+</div>
+
+<div class="toolbar">
+  <span style="font-size:12px;color:var(--muted);">类型:</span>
+  <button class="filter-btn ttype active" data-ttype="all">全部</button>
+  <button class="filter-btn ttype" data-ttype="red_line">🔴 红线</button>
+  <button class="filter-btn ttype" data-ttype="robustness">🛡 鲁棒性</button>
+  <span style="font-size:12px;color:var(--muted);">状态:</span>
+  <button class="filter-btn status active" data-status="all">全部</button>
+  <button class="filter-btn status" data-status="pending">待审核</button>
+  <button class="filter-btn status" data-status="approved">已通过</button>
+  <button class="filter-btn status" data-status="flagged">已标记</button>
+  <span style="font-size:12px;color:var(--muted);">路径:</span>
+  <button class="filter-btn path active" data-path="all">全部</button>
+  <button class="filter-btn path" data-path="L2">L2</button>
+  <button class="filter-btn path" data-path="L2.5">L2.5</button>
+  <button class="filter-btn path" data-path="cascade">cascade</button>
+</div>
+
+<div class="container" id="scenarios"></div>
+
+<script>
+const STORAGE_KEY = 'seenful_l2_dashboard_review';
+
+let allData = null;
+let allScenarios = [];
+let activeCategory = 'all';
+let activeStatus = 'all';
+let activePath = 'all';
+let activeTtype = 'all';
+let searchQuery = '';
+
+function getReviews() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { return {}; }
+}
+function setReview(id, data) {
+  const all = getReviews();
+  all[id] = { ...all[id], ...data };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+}
+function getReview(id) {
+  return getReviews()[id] || { status: 'pending', note: '' };
+}
+
+function bandClass(band) {
+  return 'band-' + (band || 'none').toLowerCase();
+}
+
+function formatBandsTable(bands) {
+  if (!bands) return '<p style="color:var(--muted);font-style:italic;">无 bands 数据</p>';
+  const dims = ['location', 'time', 'event', 'theme', 'people', 'anchor', 'emotional'];
+  let html = '<table class="bands-table"><tr><th>维度</th><th>档位 (点击看为什么)</th><th>score</th><th>规则</th></tr>';
+  for (const dim of dims) {
+    const b = bands[dim];
+    if (!b) continue;
+    const readableReason = formatBandReason(dim, b);
+    html += `<tr>
+      <td>${dim}</td>
+      <td><span class="band-cell ${bandClass(b.band)}" onclick="toggleDetail(this)">${b.band || '-'}<span class="arrow">▼</span></span>
+        <div class="band-detail">${readableReason}</div>
+      </td>
+      <td>${b.score != null ? b.score.toFixed(3) : '-'}</td>
+      <td style="color:var(--muted);font-size:11px;">${b.detail?.rule_fired || '-'}</td>
+    </tr>`;
+  }
+  html += '</table>';
+  return html;
+}
+
+// 每维度专属 reason 解释器 (ADR-0022 v0.10): 易读 + 量化 + 引用规则
+function formatBandReason(dim, b) {
+  const d = b.detail || {};
+  const rule = d.rule_fired || '-';
+  let lines = [];
+  lines.push(`<div style="font-weight:600;color:var(--accent);margin-bottom:6px;">${b.band || '-'} (规则 ${rule}, score ${b.score != null ? b.score.toFixed(3) : '-'})</div>`);
+
+  if (dim === 'location') {
+    if (d.cluster_count != null) lines.push(`📍 主簇数: <b>${d.cluster_count}</b>`);
+    if (d.main_cluster_photo_count != null) lines.push(`主簇照片数: <b>${d.main_cluster_photo_count}</b> / 总 ${d.total_photos || '?'}`);
+    if (d.K_outer != null) lines.push(`K_outer (outlier 数): <b>${d.K_outer}</b>`);
+    if (d.max_distance_m != null) lines.push(`pairwise max distance: <b>${d.max_distance_m.toFixed(0)}m</b>`);
+    if (d.shape) lines.push(`形状: <code>${d.shape}</code>`);
+    if (d.is_high_frequency_place) lines.push(`<span style="color:var(--warning);">⚠ 高频地点 (HR-POST-03 触发降档)</span>`);
+    if (d.context) lines.push(`上下文: <code>${d.context}</code>`);
+    if (rule.includes('A1') || rule.includes('A3')) lines.push(`<div style="color:var(--muted);font-size:11px;margin-top:4px;">ADR-0010: 分级 DBSCAN + PCA OBB. 主簇紧凑 → strong, 即使有 outlier (长尾不丢).</div>`);
+  } else if (dim === 'time') {
+    if (d.K_days != null) lines.push(`跨日数 K_days: <b>${d.K_days}</b>`);
+    if (d.events_per_day != null) lines.push(`每日事件数: <b>${d.events_per_day}</b>`);
+    if (d.fallback_ratio != null) lines.push(`fallback 比例 (无 EXIF): <b>${(d.fallback_ratio * 100).toFixed(0)}%</b>`);
+    if (d.shape) lines.push(`形状: <code>${d.shape}</code>`);
+    lines.push(`<div style="color:var(--muted);font-size:11px;margin-top:4px;">ADR-0011: 自然日归属 (0-6 归前日) + 链式切分 (gap > 120min). T1 单日 / T2 双日 / T3 多日.</div>`);
+  } else if (dim === 'theme') {
+    if (d.primary_cluster_count != null) lines.push(`📚 主簇数: <b>${d.primary_cluster_count}</b>`);
+    if (d.primary_coverage != null) lines.push(`primary_coverage: <b>${(d.primary_coverage * 100).toFixed(0)}%</b>`);
+    if (d.primary_hit_rates) lines.push(`各簇 hit_rate: <code>[${d.primary_hit_rates.map(r => r.toFixed(2)).join(', ')}]</code>`);
+    if (d.primary_theme_clusters) {
+      lines.push(`<div style="margin-top:4px;">主题簇:</div>`);
+      d.primary_theme_clusters.forEach((c, i) => {
+        const hr = d.primary_hit_rates ? d.primary_hit_rates[i] : null;
+        lines.push(`&nbsp;&nbsp;${i+1}. <code>[${c.join(', ')}]</code> ${hr != null ? `(hit_rate=${hr.toFixed(2)})` : ''}`);
+      });
+    }
+    if (d.secondary_action && d.secondary_action !== 'none') lines.push(`次字段 main_subjects: <b>${d.secondary_action}</b> (coverage=${d.secondary_coverage != null ? (d.secondary_coverage * 100).toFixed(0) + '%' : '-'})`);
+    if (rule === 'TH.0') lines.push(`<div style="color:var(--warning);font-size:11px;margin-top:4px;">⚠ ADR-0022: 多并列主簇覆盖 100%, 但各簇覆盖不同子集 → mixed 不是 thematic strong (B5 修复案).</div>`);
+    else if (rule === 'TH.1') lines.push(`<div style="color:var(--muted);font-size:11px;margin-top:4px;">ADR-0013/0022: 单簇 100% 或多簇都全覆盖 (同主题不同 tag) → strong thematic.</div>`);
+  } else if (dim === 'event') {
+    if (d.primary_share != null) lines.push(`primary event 占比: <b>${(d.primary_share * 100).toFixed(0)}%</b>`);
+    if (d.primary_event) lines.push(`primary event: <code>${d.primary_event}</code>`);
+    if (d.activity_consistency != null) lines.push(`activity 一致率: <b>${(d.activity_consistency * 100).toFixed(0)}%</b>`);
+    if (d.shape) lines.push(`形状: <code>${d.shape}</code>`);
+    lines.push(`<div style="color:var(--muted);font-size:11px;margin-top:4px;">ADR-0012: event=1.0 + activity ≥2/3 双重门槛才 strong (E.1).</div>`);
+  } else if (dim === 'anchor') {
+    if (d.primary_cluster_count != null) lines.push(`anchor 主簇数: <b>${d.primary_cluster_count}</b>`);
+    if (d.primary_coverage != null) lines.push(`primary_coverage: <b>${(d.primary_coverage * 100).toFixed(0)}%</b>`);
+    if (d.shape) lines.push(`形状: <code>${d.shape}</code>`);
+    lines.push(`<div style="color:var(--muted);font-size:11px;margin-top:4px;">ADR-0014: 双层 anchor (meaning + object) 复用 ADR-0013 cluster 算法.</div>`);
+  } else if (dim === 'emotional') {
+    if (d.primary_cluster_count != null) lines.push(`主簇数: <b>${d.primary_cluster_count}</b>`);
+    if (d.primary_coverage != null) lines.push(`coverage: <b>${(d.primary_coverage * 100).toFixed(0)}%</b>`);
+    if (d.is_neutral_dominant) lines.push(`<span style="color:var(--warning);">⚠ 主簇=neutral → EM.0 preempt 强制 cap weak</span>`);
+    if (d.shape) lines.push(`形状: <code>${d.shape}</code>`);
+    lines.push(`<div style="color:var(--muted);font-size:11px;margin-top:4px;">ADR-0015: 单层语义聚类 + EM.0 neutral preempt + 红线落痕.</div>`);
+  } else if (dim === 'people') {
+    if (d.people_presence_consistency) lines.push(`presence 一致: <b>${d.people_presence_consistency}</b>`);
+    if (d.face_count_consistency != null) lines.push(`face_count 一致: <b>${d.face_count_consistency}</b>`);
+    lines.push(`<div style="color:var(--muted);font-size:11px;margin-top:4px;">v0.1 简化: P0 上限 0.65 (永不进 strong).</div>`);
+  }
+
+  if (!d || Object.keys(d).length === 0) {
+    lines.push(`<div style="color:var(--muted);font-style:italic;">(无 detail 数据)</div>`);
+  }
+
+  // raw json 折叠 (可选)
+  lines.push(`<details style="margin-top:8px;"><summary style="font-size:10px;color:var(--muted);cursor:pointer;">查看 raw JSON</summary><pre style="font-size:10px;">${escapeHtml(JSON.stringify(d, null, 2))}</pre></details>`);
+
+  return lines.join('<br>');
+}
+
+function toggleDetail(el) {
+  el.querySelector('.arrow').textContent = el.nextElementSibling.classList.contains('show') ? '▼' : '▲';
+  el.nextElementSibling.classList.toggle('show');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ─── ADR v0.6 可视化 (lazy render, 点击才画 Canvas) ────────────
+
+function formatVizToolbar(scenarioId, photos) {
+  if (!photos || photos.length === 0) return '';
+  const hasGps = photos.some(p => p.gps);
+  const hasTime = photos.some(p => p.captured_at);
+  const hasTheme = photos.some(p => p.theme_tags && p.theme_tags.length);
+  const id = scenarioId.replace(/\W/g, '_');
+  return `<div class="viz-toolbar">
+    ${hasTime ? `<button class="viz-btn" onclick="toggleViz('${id}', 'time', '${scenarioId}')">📊 时间轴</button>` : ''}
+    ${hasGps ? `<button class="viz-btn" onclick="toggleViz('${id}', 'gps', '${scenarioId}')">🗺 GPS 分布</button>` : ''}
+    ${hasTheme ? `<button class="viz-btn" onclick="toggleViz('${id}', 'theme', '${scenarioId}')">🏷 主题标签云</button>` : ''}
+    <div id="viz-${id}-time" class="viz-panel"><canvas width="700" height="120"></canvas><div class="viz-legend"></div></div>
+    <div id="viz-${id}-gps" class="viz-panel"><canvas width="500" height="500"></canvas><div class="viz-legend"></div></div>
+    <div id="viz-${id}-theme" class="viz-panel"><div class="tag-cloud"></div><div class="viz-legend"></div></div>
+  </div>`;
+}
+
+window.toggleViz = function(id, kind, scenarioId) {
+  const panel = document.getElementById(`viz-${id}-${kind}`);
+  const btn = event.target;
+  if (panel.classList.contains('show')) {
+    panel.classList.remove('show');
+    btn.classList.remove('active');
+    return;
+  }
+  // 关其他 panel
+  panel.parentElement.querySelectorAll('.viz-panel.show').forEach(p => p.classList.remove('show'));
+  panel.parentElement.querySelectorAll('.viz-btn.active').forEach(b => b.classList.remove('active'));
+  panel.classList.add('show');
+  btn.classList.add('active');
+  // 找 scenario 数据
+  const scenario = allScenarios.find(s => s.id === scenarioId);
+  if (!scenario) return;
+  const photos = scenario.input_photos || [];
+  if (kind === 'time') renderTimeline(panel, photos);
+  else if (kind === 'gps') renderGps(panel, photos);
+  else if (kind === 'theme') renderTheme(panel, photos);
+};
+
+function renderTimeline(panel, photos) {
+  const canvas = panel.querySelector('canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const points = photos.filter(p => p.captured_at).map(p => ({
+    id: p.id, t: new Date(p.captured_at).getTime(),
+  })).sort((a, b) => a.t - b.t);
+  if (points.length < 2) { panel.querySelector('.viz-legend').textContent = '需要 ≥2 张照片有时间戳'; return; }
+  const tMin = points[0].t, tMax = points[points.length - 1].t;
+  const span = tMax - tMin || 1;
+  // 横轴 + 标尺
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(40, H/2); ctx.lineTo(W-20, H/2); ctx.stroke();
+  // 计算 gap 用于标线
+  for (let i = 0; i < points.length; i++) {
+    const x = 40 + (points[i].t - tMin) / span * (W - 60);
+    // 点
+    ctx.fillStyle = '#2563eb';
+    ctx.beginPath(); ctx.arc(x, H/2, 6, 0, Math.PI*2); ctx.fill();
+    // id 标签
+    ctx.fillStyle = '#475569'; ctx.font = '10px monospace';
+    ctx.fillText(points[i].id, x - 12, H/2 + 22);
+    // gap 标线 (跟下个)
+    if (i < points.length - 1) {
+      const gapMs = points[i+1].t - points[i].t;
+      const gapMin = gapMs / 60000;
+      let label;
+      if (gapMin < 60) label = `${gapMin.toFixed(0)}分`;
+      else if (gapMin < 1440) label = `${(gapMin/60).toFixed(1)}h`;
+      else label = `${(gapMin/1440).toFixed(1)}天`;
+      const xNext = 40 + (points[i+1].t - tMin) / span * (W - 60);
+      const xMid = (x + xNext) / 2;
+      ctx.fillStyle = gapMin > 120 ? '#dc2626' : '#16a34a';
+      ctx.font = '10px sans-serif';
+      ctx.fillText(label, xMid - 10, H/2 - 12);
+    }
+  }
+  const totalSpan = (tMax - tMin) / 60000;
+  const spanLabel = totalSpan < 60 ? `${totalSpan.toFixed(0)}分钟` :
+                    totalSpan < 1440 ? `${(totalSpan/60).toFixed(1)}小时` :
+                    `${(totalSpan/1440).toFixed(1)}天`;
+  panel.querySelector('.viz-legend').innerHTML =
+    `${points.length} 张 · 跨度 ${spanLabel} · <span style="color:#dc2626;">红色 gap > 120min (ADR-0011 切分边界)</span>`;
+}
+
+function renderGps(panel, photos) {
+  const canvas = panel.querySelector('canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const pts = photos.filter(p => p.gps).map(p => ({ id: p.id, lat: p.gps[0], lng: p.gps[1] }));
+  if (pts.length === 0) { panel.querySelector('.viz-legend').textContent = '无 GPS'; return; }
+  const latMin = Math.min(...pts.map(p => p.lat));
+  const latMax = Math.max(...pts.map(p => p.lat));
+  const lngMin = Math.min(...pts.map(p => p.lng));
+  const lngMax = Math.max(...pts.map(p => p.lng));
+  const latSpan = (latMax - latMin) || 0.001;
+  const lngSpan = (lngMax - lngMin) || 0.001;
+  // padding
+  const pad = 30;
+  function proj(lat, lng) {
+    const x = pad + (lng - lngMin) / lngSpan * (W - 2*pad);
+    const y = H - pad - (lat - latMin) / latSpan * (H - 2*pad);
+    return [x, y];
+  }
+  // 画点
+  pts.forEach((p, i) => {
+    const [x, y] = proj(p.lat, p.lng);
+    ctx.fillStyle = '#2563eb';
+    ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#475569'; ctx.font = '10px monospace';
+    ctx.fillText(p.id, x + 8, y + 4);
+  });
+  // 距离 (haversine 简化)
+  function dist(a, b) {
+    const R = 6371000;
+    const dLat = (b.lat - a.lat) * Math.PI / 180;
+    const dLng = (b.lng - a.lng) * Math.PI / 180;
+    const aval = Math.sin(dLat/2)**2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(aval), Math.sqrt(1-aval));
+  }
+  let maxD = 0;
+  for (let i = 0; i < pts.length; i++)
+    for (let j = i+1; j < pts.length; j++)
+      maxD = Math.max(maxD, dist(pts[i], pts[j]));
+  const dLabel = maxD < 1000 ? `${maxD.toFixed(0)}m` : `${(maxD/1000).toFixed(2)}km`;
+  panel.querySelector('.viz-legend').innerHTML =
+    `${pts.length} 个 GPS 点 · 最大 pairwise 距离 <strong>${dLabel}</strong> · <span style="color:var(--muted);">投影非真实地图, 仅示意分布</span>`;
+}
+
+function renderTheme(panel, photos) {
+  const cloud = panel.querySelector('.tag-cloud');
+  cloud.innerHTML = '';
+  const tagCount = {};
+  photos.forEach(p => (p.theme_tags || []).forEach(t => tagCount[t] = (tagCount[t] || 0) + 1));
+  const total = photos.length;
+  const sorted = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
+  sorted.forEach(([tag, cnt]) => {
+    const shared = cnt > 1;
+    const item = document.createElement('span');
+    item.className = 'tc-item' + (shared ? ' shared' : '');
+    item.style.fontSize = (10 + cnt * 1.5) + 'px';
+    item.textContent = `${tag} ×${cnt}`;
+    cloud.appendChild(item);
+  });
+  const sharedCount = sorted.filter(([_, c]) => c > 1).length;
+  panel.querySelector('.viz-legend').innerHTML =
+    `${sorted.length} 个 unique tags · <span style="color:#92400e;">${sharedCount} 个跨张共享 (黄色)</span> · 字号 ∝ 出现次数`;
+}
+
+function formatPhotos(photos) {
+  if (!photos || photos.length === 0) return '<p style="color:var(--muted);">无</p>';
+  return '<div class="photos-grid">' + photos.map(p => `
+    <div class="photo-card">
+      <div class="pid">${p.id}</div>
+      <div class="narr">${escapeHtml(p.narrative || '-')}</div>
+      <div class="tags">主题: ${(p.theme_tags || []).join(', ')}</div>
+      <div class="tags">event: ${p.event_hint} · tone: ${p.emotional_tone}</div>
+      <div class="tags">anchors: ${(p.meaning_anchors || []).join(', ') || '-'}</div>
+      <div class="tags">gps: ${p.gps ? p.gps.join(', ') : '-'} ${p.is_high_frequency_place ? '🏠hf' : ''} ${p.sensitive_level !== 'none' ? '⚠'+p.sensitive_level : ''}</div>
+    </div>`).join('') + '</div>';
+}
+
+function formatMemory(mem) {
+  if (!mem) return '';
+  return `<div class="memory-grid">
+    <div class="memory-card"><div class="key">身份</div>${mem.identity?.name || '-'} · ${mem.identity?.age || '-'}岁 · ${mem.identity?.city || '-'} · ${mem.identity?.life_stage || '-'}</div>
+    <div class="memory-card"><div class="key">User Model</div>v${mem.user_model?.version || '-'} · ${mem.user_model?.relationship_stage?.familiarity || '-'}</div>
+    <div class="memory-card"><div class="key">Active State</div>累计 ${mem.active_state?.system_counters?.cumulative_active_days || '-'} 天 · 连续 ${mem.active_state?.system_counters?.current_streak || '-'}</div>
+    <div class="memory-card"><div class="key">Event Log</div>${mem.event_log_count} 条</div>
+    <div class="memory-card"><div class="key">Daily Digest</div>${mem.daily_digests_count} 个</div>
+  </div>`;
+}
+
+function formatLLM(llm) {
+  if (!llm) return '<p style="color:var(--muted);">无 LLM 数据</p>';
+  if (llm.skipped) return '<div class="llm-block skipped">⏭ F1 兜底, 跳过 LLM</div>';
+  return `<div class="llm-block">
+    <div><span class="label">proposed_strength:</span> <strong>${llm.proposed_strength}</strong> ·
+         <span class="label">proposed_type:</span> <strong>${llm.proposed_type}</strong>${llm.is_mock ? ' <span class="tag">mock</span>' : ' <span class="tag">真 LLM</span>'}</div>
+    <div class="reason"><span class="label">💭 reason:</span> ${escapeHtml(llm.semantic_reason || '-')}</div>
+    ${llm.evidence?.length ? '<div class="reason"><span class="label">📋 evidence:</span><ul>' +
+      llm.evidence.map(e => `<li><code>${e.photo_id}</code>: ${escapeHtml(e.evidence)}</li>`).join('') + '</ul></div>' : ''}
+    ${llm.counter_evidence ? `<div class="reason"><span class="label">⚠ counter:</span> ${escapeHtml(llm.counter_evidence)}</div>` : ''}
+  </div>`;
+}
+
+function formatDecision(algo) {
+  if (!algo) return '';
+  const fd = algo.final_decision || {};
+  return `<div class="decision-block">
+    ${Object.entries(fd).map(([k, v]) => `
+      <div><div class="k">${k}</div><div class="v">${v ?? '-'}</div></div>
+    `).join('')}
+  </div>`;
+}
+
+// cascade 专属: 新照片 + 沉淀池 + 粗筛排序 + 组合 bands + caps + LLM + 最终
+function formatCascadeBody(s) {
+  const algo = s.algorithm_output || {};
+  const fd = algo.final_decision || {};
+  const ranking = algo.priority_ranking || [];
+  const recalled = new Set(fd.recalled_photo_ids || []);
+  const mtt = algo.main_truth_table || {};
+  const caps = algo.caps || [];
+  const llm = algo.llm;
+  const pool = s.sediment_pool || [];
+  const newPhoto = (s.input_photos || [])[0];
+
+  // 把 bands_snapshot (dict of band str) 转成 formatBandsTable 期望的形式
+  const bandsForm = {};
+  if (mtt.bands_snapshot) {
+    for (const [k, v] of Object.entries(mtt.bands_snapshot)) {
+      bandsForm[k] = { band: v, score: null, detail: null };
+    }
+  }
+
+  const photoCard = (p, isRecalled, label) => `
+    <div class="photo-card ${isRecalled === true ? 'recalled' : isRecalled === false ? 'not-recalled' : ''}">
+      <div class="pid">${p.id} ${label || ''}</div>
+      <div class="narr">${escapeHtml(p.narrative || '-')}</div>
+      <div class="tags">主题: ${(p.theme_tags || []).join(', ')}</div>
+      <div class="tags">event: ${p.event_hint || '-'} · tone: ${p.emotional_tone || '-'}</div>
+      <div class="tags">gps: ${p.gps ? p.gps.join(', ') : '-'} ${p.is_high_frequency_place ? '🏠hf' : ''}</div>
+    </div>`;
+
+  return `
+    <div class="section">
+      <div class="section-title"><span class="icon">🗃</span>沉淀池 (${pool.length}, 召回 ${recalled.size}/${pool.length})</div>
+      ${pool.length ? `<div class="photos-grid">${pool.map(p => photoCard(p, recalled.has(p.id), recalled.has(p.id) ? '✓召回' : '✗未召回')).join('')}</div>` : '<p style="color:var(--muted);">无</p>'}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🔍</span>粗筛排序 (score = gps×1 + theme×1 + event×0.5, top 4 入)</div>
+      ${ranking.length ? `<table class="cascade-table">
+        <tr><th>photo_id</th><th>GPS &lt; 1km</th><th>theme Jaccard &gt; 0.5</th><th>event 一致</th><th>score</th><th>选中</th></tr>
+        ${ranking.map(r => `
+          <tr class="${r.selected ? 'sel' : ''}">
+            <td><code>${r.photo_id}</code></td>
+            <td>${r.gps_within_1km ? '<span class="ok">✓</span>' : '<span class="no">✗</span>'}</td>
+            <td>${r.theme_jaccard_above_0_5 ? '<span class="ok">✓</span>' : '<span class="no">✗</span>'}</td>
+            <td>${r.event_match ? '<span class="ok">✓</span>' : '<span class="no">✗</span>'}</td>
+            <td><strong>${r.score}</strong></td>
+            <td>${r.selected ? '<span class="ok">✓</span>' : '<span class="no">-</span>'}</td>
+          </tr>`).join('')}
+      </table>` : '<p style="color:var(--muted);">无</p>'}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">📊</span>组合 bands (新+召回 一起跑主真值表)</div>
+      ${formatBandsTable(bandsForm)}
+      <p style="font-size:13px;margin-top:8px;">
+        <span class="tag">${mtt.matched_pattern || '-'}</span>
+        bounds=[${mtt.bounds_min || '-'}, ${mtt.bounds_max || '-'}] · type=<strong>${mtt.type || '-'}</strong>
+      </p>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🤖</span>LLM 复核</div>
+      ${llm ? `<div class="llm-block">
+        <div><span class="label">proposed_strength:</span> <strong>${llm.proposed_strength || '-'}</strong>${llm.is_mock ? ' <span class="tag">mock</span>' : ' <span class="tag">真 LLM</span>'}</div>
+        <div class="reason"><span class="label">💭 reason:</span> ${escapeHtml(llm.semantic_reason || '-')}</div>
+      </div>` : '<p style="color:var(--muted);">无 LLM 数据</p>'}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🚦</span>三条 Caps (须全过才 create_new_album)</div>
+      ${caps.length ? `<table class="cascade-table">
+        <tr><th>Cap</th><th>通过</th><th>详情</th></tr>
+        ${caps.map(c => {
+          const passed = c.passed ?? c.ok ?? false;
+          const reason = c.detail || c.reason || c.note || JSON.stringify(c);
+          return `<tr class="${passed ? 'sel' : 'fail'}">
+            <td><code>${c.rule || c.cap_id || c.id || c.name || '-'}</code></td>
+            <td>${passed ? '<span class="ok">✓</span>' : '<span class="no">✗</span>'}</td>
+            <td style="font-size:11px;color:var(--muted);">${escapeHtml(reason)}</td>
+          </tr>`;
+        }).join('')}
+      </table>` : '<p style="color:var(--muted);">无 caps 数据 (路径未跑到 caps 阶段)</p>'}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🎬</span>最终决定</div>
+      <div class="decision-block">
+        <div><div class="k">decision_tier</div><div class="v">${fd.decision_tier || '-'}</div></div>
+        <div><div class="k">召回照片 (${(fd.recalled_photo_ids || []).length})</div><div class="v">${(fd.recalled_photo_ids || []).join(', ') || '(无)'}</div></div>
+        <div><div class="k">target_album_strength</div><div class="v">${fd.target_album_strength || '-'}</div></div>
+        <div><div class="k">reason</div><div class="v">${fd.reason || '-'}</div></div>
+      </div>
+    </div>
+  `;
+}
+
+// L2.5 path A 专属: 老相册指纹 + 每相册评估 + 最终决定
+function formatGrowthBody(s) {
+  const algo = s.algorithm_output || {};
+  const fd = algo.final_decision || {};
+  const perAlbum = algo.per_album || [];
+  const candidates = s.candidate_albums || [];
+  const targetId = fd.target_album_id;
+
+  const albumCard = (a) => {
+    const isTarget = targetId === a.id;
+    return `<div class="photo-card ${isTarget?'recalled':''}">
+      <div class="pid">${a.id} ${isTarget?'🎯 命中':''} <span style="color:var(--muted);font-weight:normal;">(${a.photo_count||'?'}张)</span></div>
+      <div class="narr">${escapeHtml(a.title || '-')}</div>
+      <div class="tags">📚 theme: ${(a.theme_clusters||[]).join(', ') || '-'}</div>
+      <div class="tags">📅 event: ${a.event_primary || '-'}</div>
+      <div class="tags">⚓ anchors: ${(a.anchors_set||[]).join(', ') || '(无)'}</div>
+      <div class="tags">📍 gps: ${a.place_anchor_gps ? a.place_anchor_gps.map(x=>x.toFixed(3)).join(', ') : '-'}</div>
+    </div>`;
+  };
+
+  const bandClassFn = (b) => bandClass(b);
+
+  return `
+    <div class="section">
+      <div class="section-title"><span class="icon">📚</span>候选老相册 (${candidates.length}, 评估 ${perAlbum.length})</div>
+      ${candidates.length ? `<div class="photos-grid">${candidates.map(albumCard).join('')}</div>` : '<p style="color:var(--muted);">无</p>'}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">📊</span>每相册评估 (path A 4 维 bands + 真值表 + LLM)</div>
+      ${perAlbum.length ? perAlbum.map(e => {
+        const isTarget = targetId === e.album_id;
+        const b = e.bands || {};
+        return `
+        <div class="llm-block ${isTarget?'sel':''}" style="margin-bottom:8px;${isTarget?'border-left:3px solid var(--success);':''}">
+          <div><span class="label">album:</span> <code>${e.album_id}</code> ${isTarget?'<span class="tag" style="background:#dcfce7;color:#166534;">🎯 winner</span>':''}</div>
+          <table class="bands-table" style="margin-top:6px;">
+            <tr><th>维度</th><th>档位</th></tr>
+            <tr><td>location</td><td><span class="band-cell ${bandClassFn(b.location)}">${b.location || '-'}</span></td></tr>
+            <tr><td>theme</td><td><span class="band-cell ${bandClassFn(b.theme)}">${b.theme || '-'}</span></td></tr>
+            <tr><td>event</td><td><span class="band-cell ${bandClassFn(b.event)}">${b.event || '-'}</span></td></tr>
+            <tr><td>anchor</td><td><span class="band-cell ${bandClassFn(b.anchor)}">${b.anchor || '-'}</span></td></tr>
+          </table>
+          <div style="margin-top:6px;">
+            <span class="tag">${e.matched_pattern || '-'}</span>
+            <span class="tag" style="background:#fef3c7;color:#92400e;">tier: ${e.decision_tier || '-'}</span>
+            ${e.llm_accept != null ? `<span class="tag" style="background:${e.llm_accept?'#dcfce7':'#fee2e2'};color:${e.llm_accept?'#166534':'#991b1b'};">LLM ${e.llm_accept?'✓接受':'✗反对'}</span>` : ''}
+          </div>
+          ${e.llm_reason ? `<div class="reason" style="margin-top:4px;"><span class="label">💭 LLM:</span> ${escapeHtml(e.llm_reason)}</div>` : ''}
+        </div>`;
+      }).join('') : '<p style="color:var(--muted);">无评估 (无候选相册)</p>'}
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🎬</span>最终决定</div>
+      <div class="decision-block">
+        <div><div class="k">decision_tier</div><div class="v">${fd.decision_tier || '-'}</div></div>
+        <div><div class="k">target_album</div><div class="v">${fd.target_album_id || '(无)'}</div></div>
+        <div><div class="k">primary_signal</div><div class="v">${fd.primary_signal || '-'}</div></div>
+        <div><div class="k">reason</div><div class="v">${fd.reason || '-'}</div></div>
+      </div>
+    </div>
+  `;
+}
+
+function formatExpectedCompare(s) {
+  const expected = s.expected || {};
+  const algo = s.algorithm_output || {};
+  const fd = algo.final_decision || {};
+  const expEmpty = Object.keys(expected).length === 0;
+  return `<div class="compare">
+    <div class="col"><div class="label">期望</div>
+      ${expEmpty ? '<div class="empty">(无具体期望, 仅校验 invariants)</div>' :
+        Object.entries(expected).map(([k, v]) => `<div><strong>${k}</strong>: ${v}</div>`).join('')}
+    </div>
+    <div class="col"><div class="label">实际</div>
+      ${Object.entries(fd).slice(0, 4).map(([k, v]) => `<div><strong>${k}</strong>: ${v}</div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function formatViolations(s) {
+  if (s.violations && s.violations.length > 0) {
+    return `<div class="violations">❌ Invariants 违反 (${s.violations.length}):
+      <ul>${s.violations.map(v => '<li>' + escapeHtml(v) + '</li>').join('')}</ul>
+    </div>`;
+  }
+  const inv = s.invariants_checked ? s.invariants_checked.join(', ') : 'all 8';
+  return `<div class="violations ok">✅ Invariants 全过 (${inv})</div>`;
+}
+
+function formatReview(id) {
+  const r = getReview(id);
+  return `<div class="review-block">
+    <div class="review-buttons">
+      <button class="review-btn approve ${r.status === 'approved' ? 'active' : ''}" onclick="markReview('${id}', 'approved')">✓ Approve (可接受)</button>
+      <button class="review-btn flag ${r.status === 'flagged' ? 'active' : ''}" onclick="markReview('${id}', 'flagged')">⚠ Flag (误通过)</button>
+      <button class="review-btn reset" onclick="markReview('${id}', 'pending')">↺ Reset</button>
+    </div>
+    <textarea class="review-note" placeholder="备注 (eg. 'algorithm 输出 strong, 用户可接受' / '应该是 weak, 算法漏判')"
+      onchange="setReview('${id}', { note: this.value })">${escapeHtml(r.note || '')}</textarea>
+  </div>`;
+}
+
+window.markReview = function(id, status) {
+  setReview(id, { status });
+  renderScenarios();
+};
+window.setReview = setReview;
+
+function renderScenarios() {
+  const container = document.getElementById('scenarios');
+  const filtered = allScenarios.filter(s => {
+    const cat = (s.behavior_pattern || '').split('.')[0];
+    if (activeCategory !== 'all' && cat !== activeCategory) return false;
+    if (activePath !== 'all' && s.test_path !== activePath) return false;
+    if (activeTtype !== 'all' && s.test_type !== activeTtype) return false;
+    const r = getReview(s.id);
+    if (activeStatus !== 'all' && r.status !== activeStatus) return false;
+    if (searchQuery && !s.name.toLowerCase().includes(searchQuery.toLowerCase())
+        && !s.id.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">没有匹配的 scenario</div>';
+    return;
+  }
+
+  let html = '';
+  for (const s of filtered) {
+    const r = getReview(s.id);
+    const statusClass = `status-${r.status}`;
+    const matchClass = (s.match === true || s.match === 'match') ? 'match-pass' : (s.match === false || s.match === 'mismatch') ? 'match-fail' : s.match === 'acceptable' ? 'match-acc' : 'match-na';
+    const matchText = (s.match === true || s.match === 'match') ? '✓ match' : (s.match === false || s.match === 'mismatch') ? '✗ mismatch' : s.match === 'acceptable' ? '🟡 acceptable' : '∅ no-expect';
+    html += `<div class="scenario-card" data-id="${s.id}">
+      <div class="scenario-header" onclick="toggleCard(this.parentElement)">
+        <div>
+          <div class="scenario-title">${escapeHtml(s.name)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${s.id}</div>
+        </div>
+        <div class="scenario-meta">
+          <span class="tag" style="background:${s.test_type === 'red_line' ? '#fee2e2;color:#991b1b' : '#f0f0f0;color:#555'}">${s.test_type === 'red_line' ? '🔴 红线' : '🛡 鲁棒'}</span>
+          <span class="tag pattern">${s.behavior_pattern}</span>
+          <span class="tag persona">${s.persona.replace('laoqi_', '张').replace('laoli_', '李').replace('xiaowang', '小王')}</span>
+          <span class="tag path">${s.test_path}</span>
+          <span class="tag ${matchClass}">${matchText}</span>
+          <span class="tag ${statusClass}">${r.status}</span>
+        </div>
+      </div>
+      <div class="scenario-body">
+        <div class="section">
+          <div class="section-title"><span class="icon">🎯</span>产品意图</div>
+          <div class="intent">${escapeHtml(s.product_intent || '未设置')}</div>
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">🧠</span>用户记忆 (4 层)</div>
+          ${formatMemory(s.user_memory)}
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">📷</span>输入照片 (${s.input_photos?.length || 0})</div>
+          ${formatPhotos(s.input_photos)}
+          ${formatVizToolbar(s.id, s.input_photos)}
+        </div>
+        ${s.error ? `<div class="section"><div class="violations">❌ 跑失败: ${escapeHtml(s.error)}</div></div>` : `
+        ${s.test_path === 'cascade' ? formatCascadeBody(s) : s.test_path === 'L2.5' ? formatGrowthBody(s) : `
+        <div class="section">
+          <div class="section-title"><span class="icon">📊</span>算法 · 7 维 bands (点击展开详情)</div>
+          ${formatBandsTable(s.algorithm_output?.bands)}
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">🤖</span>真值表 + LLM</div>
+          <p style="font-size:13px;margin-bottom:8px;">
+            <span class="tag">${s.algorithm_output?.truth_table?.matched_pattern || '-'}</span>
+            bounds=[${s.algorithm_output?.truth_table?.bounds_min}, ${s.algorithm_output?.truth_table?.bounds_max}]
+            · type=<strong>${s.algorithm_output?.truth_table?.type}</strong>
+          </p>
+          ${formatLLM(s.algorithm_output?.llm)}
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">🎬</span>最终决定</div>
+          ${formatDecision(s.algorithm_output)}
+        </div>`}
+        <div class="section">
+          <div class="section-title"><span class="icon">⚖</span>期望 vs 实际</div>
+          ${formatExpectedCompare(s)}
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">🛡</span>Invariants 校验</div>
+          ${formatViolations(s)}
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">👤</span>人工审核</div>
+          ${formatReview(s.id)}
+        </div>
+        `}
+      </div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+window.toggleCard = function(card) { card.classList.toggle('expanded'); };
+
+function refreshStats() {
+  const reviews = getReviews();
+  const total = allScenarios.length;
+  const redline = allScenarios.filter(s => s.test_type === 'red_line').length;
+  const robust = allScenarios.filter(s => s.test_type === 'robustness').length;
+  const pass = allScenarios.filter(s => s.match === true).length;
+  const fail = allScenarios.filter(s => s.match === false).length;
+  const approved = Object.values(reviews).filter(r => r.status === 'approved').length;
+  const flagged = Object.values(reviews).filter(r => r.status === 'flagged').length;
+  document.getElementById('stat-total').textContent = `总计 ${total} (🔴${redline}/🛡${robust})`;
+  document.getElementById('stat-pass').textContent = `match ${pass}`;
+  document.getElementById('stat-fail').textContent = `mismatch ${fail}`;
+  document.getElementById('stat-reviewed').textContent = `已通过 ${approved}`;
+  document.getElementById('stat-flagged').textContent = `已标记 ${flagged}`;
+}
+
+function init() {
+  fetch('_dashboard_data.json')
+    .then(r => r.json())
+    .then(data => {
+      allData = data;
+      allScenarios = data.scenarios;
+      document.getElementById('meta-info').textContent =
+        `共 ${data.total_scenarios} scenarios · 生成于 ${data.generated_at?.slice(0, 19)}`;
+      refreshStats();
+      renderScenarios();
+    })
+    .catch(e => {
+      document.getElementById('scenarios').innerHTML =
+        '<div class="empty-state">⚠ 加载 _dashboard_data.json 失败. 请先跑: python tests/personas/_gen_dashboard_data.py<br><br>' + e + '</div>';
+    });
+
+  document.querySelectorAll('.filter-btn.category').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.filter-btn.category').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    activeCategory = b.dataset.cat;
+    renderScenarios();
+  });
+  document.querySelectorAll('.filter-btn.status').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.filter-btn.status').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    activeStatus = b.dataset.status;
+    renderScenarios();
+  });
+  document.querySelectorAll('.filter-btn.path').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.filter-btn.path').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    activePath = b.dataset.path;
+    renderScenarios();
+  });
+  document.querySelectorAll('.filter-btn.ttype').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.filter-btn.ttype').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    activeTtype = b.dataset.ttype;
+    renderScenarios();
+  });
+  document.getElementById('search').addEventListener('input', e => {
+    searchQuery = e.target.value;
+    renderScenarios();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

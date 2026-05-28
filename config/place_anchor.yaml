@@ -1,0 +1,59 @@
+# Place Anchor (DBCH) 配置
+# 参考: docs/10_mini_album_schema.md, decisions/0005-place-anchor-dbch.md
+# v0.1 ADR-0016: 4 档升级 (市内/省内/国内/国外), supersede ADR-0007 临时单一表
+# 修改前先改 docs/22_location_geocoder.md (CLAUDE.md 第 1 条硬约束)
+
+# ─── 距离档位 (ADR-0016 4 档) ───────────────────────────
+# strong = 500/1000/1500/2000m (Ace 2026-05-18 拍板);
+# medium/weak 按 ADR-0007 1:2:4 比例派生
+band_thresholds_4tier:
+  市内:
+    strong_m: 500
+    medium_m: 1000
+    weak_m: 2000
+  省内:
+    strong_m: 1000
+    medium_m: 2000
+    weak_m: 4000
+  国内:
+    strong_m: 1500
+    medium_m: 3000
+    weak_m: 6000
+  国外:
+    strong_m: 2000
+    medium_m: 4000
+    weak_m: 8000
+
+# ─── Buffer 配置 (ADR-0016 4 档, base = strong / 2) ───
+buffer_4tier:
+  alpha: 0.6
+  base_m:
+    市内: 250
+    省内: 500
+    国内: 750
+    国外: 1000
+
+# ─── DBSCAN 参数 (ADR-0016 4 档, P0.5 调优见 OQ-012) ──
+dbscan:
+  eps_m:
+    市内: 200
+    省内: 400
+    国内: 600
+    国外: 800
+  min_samples: 2
+
+# ─── 重跑策略 ─────────────────────────────────────────
+rerun:
+  full_rerun_interval: 10    # 每 N 张照片全量重跑 DBSCAN
+
+# ─── User home_city stub (OQ-010, v0.1 demo 用) ──────
+# 真实实现见 src/mini_album/user_home_city.py infer_user_home_city
+# ADR-0016 后字段升 admin dict, 但 demo stub 仍保留中心点 fallback
+demo_home_city_stub:
+  user_demo:
+    country: "中国"
+    province: "浙江省"
+    city: "杭州市"
+    district: "西湖区"
+    center: [30.26, 120.13]    # 兜底用 (lat, lng), Geocoder 失败时回退
+    radius_km: 30

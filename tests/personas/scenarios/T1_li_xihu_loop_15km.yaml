@@ -1,0 +1,21 @@
+name: '#1 李叔叔环西湖闭环 15km 8 张'
+persona: laoli_youke
+behavior_pattern: T.1
+test_path: L2
+product_intent: '环湖闭环: 首尾近 200m 但中间 15km 跨度, DBSCAN 不应把环切成多个簇'
+input:
+  new_photos:
+  - l51
+  - l52
+  - l53
+  - l54
+  - l55
+  - l56
+  - l57
+  - l58
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: '闭环识别: 起点终点 GPS 接近, 但中间 15km, time 3-4 小时连续'
+test_type: robustness

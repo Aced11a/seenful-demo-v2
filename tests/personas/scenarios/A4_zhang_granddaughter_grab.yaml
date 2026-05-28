@@ -1,0 +1,15 @@
+name: A.4 张奶奶被孙女抢手机自拍 3 张突变
+persona: laoqi_zhang
+behavior_pattern: A.4
+test_path: L2.5
+product_intent: 孙女自拍突变 vs 阳台花相册, 应 no_merge (主题完全无关)
+input:
+  new_photo: z11
+  old_albums:
+  - granddaughter_album
+expected:
+  decision_tier: ['auto_merge', 'ask_user']
+invariants:
+- INV-01
+notes: 孙女自拍应进 granddaughter_album (people + theme 都强匹配)
+test_type: robustness

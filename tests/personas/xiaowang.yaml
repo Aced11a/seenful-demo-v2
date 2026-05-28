@@ -1,0 +1,192 @@
+# 小王 persona v0.1 (ADR-0019 v0.2 新增)
+# 30 张 / 14 天 / 年轻人 (拍照重度爱好者) 行为模式
+# 覆盖年轻人模式: C.3 网红墙 / C.4 一道菜 / C.6 GPS漂移 / C.7 连拍 / C.8 同地不同主体
+
+persona_id: xiaowang
+
+identity:
+  name: 小王
+  age: 28
+  city: 上海
+  life_stage: working
+  photo_style_preference: vivid
+  content_topics: [travel, food, lifestyle]
+
+life_events:
+  - {date: 2026-04-22, type: concert, summary: 演唱会爆拍}
+  - {date: 2026-04-26, type: cafe, summary: 网红咖啡馆同地不同主体}
+  - {date: 2026-04-29, type: hike, summary: 山区徒步 GPS 漂移}
+  - {date: 2026-05-03, type: restaurant, summary: 餐厅一道菜多角度}
+  - {date: 2026-05-06, type: photo_wall, summary: 网红打卡墙}
+
+active_state:                         # ADR-0020 字段保留
+  system_counters: {cumulative_active_days: 12, journey_day: 12, current_streak: 5}
+  derived_preferences: {}
+  session_state: {}
+  behavior_cache: {recent_features_used: [album_view]}
+  guard_flags: {}
+
+user_model:                           # ADR-0020 字段保留
+  version: 3
+  identity:
+    nickname: {value: 小王, source: persona_seed}
+    city: {value: 上海, source: persona_seed}
+    life_stage: {value: working, evidence_confidence: 0.7}
+  preferences: {}
+  current_state: {}
+  companion_notes: ""
+  relationship_stage: {familiarity: acquainted}
+
+event_log:
+  - {id: evt_w01, ts: 2026-04-22T20:30, type: photo_upload, source: photo_pipeline, content: {count: 25, themes: [concert, stage]}, business_date: 2026-04-22, late_arrival: false}
+  - {id: evt_concert_emotion, ts: 2026-04-22T22:30, type: emotion_signal, source: chat_parser, content: {emotion: happy, intensity: strong, raw: 今晚太炸了}, business_date: 2026-04-22, late_arrival: false}
+  - {id: evt_w17, ts: 2026-04-29T09:00, type: photo_upload, source: photo_pipeline, content: {count: 5, themes: [hike, mountain]}, business_date: 2026-04-29, late_arrival: false}
+  - {id: evt_steak_share, ts: 2026-05-03T20:00, type: social_action, source: feature_analytics, content: {action: share, channel: wechat_friend, content_type: daily_sign}, business_date: 2026-05-03, late_arrival: false}
+
+daily_digests:
+  - business_date: 2026-04-22
+    structured: {photo_count: 25, top_themes: [concert, stage], mood: [awe]}
+    episodic_text: "2026年4月22日, 小王看了演唱会, 1 分钟内连拍 25 张."
+    should_store: true
+    event_count: 25
+    frozen_at: 2026-04-23T04:00:00
+  - business_date: 2026-04-29
+    structured: {photo_count: 5, top_themes: [hike, mountain]}
+    episodic_text: "2026年4月29日, 小王徒步山区 5 张, GPS 有点飘移."
+    should_store: true
+    event_count: 5
+    frozen_at: 2026-04-30T04:00:00
+
+groups:
+  concert_burst:                          # C.7 连拍 (演唱会 1 分钟 25 张)
+    behavior_pattern: C.7
+    description: 演唱会 1 分钟内 20+ 张几乎同构图
+  cafe_multi_subject:                     # C.8 同地不同主体 (5 咖啡 + 3 朋友)
+    behavior_pattern: C.8
+    description: 咖啡馆同 location 但主体切换
+  hike_gps_drift:                         # C.6 GPS 漂移 (山区 ±150m)
+    behavior_pattern: C.6
+    description: 徒步山区 GPS 飘移大
+  one_dish_multi_angle:                   # C.4 餐厅一道菜多角度
+    behavior_pattern: C.4
+    description: 同一道菜从 5 个角度拍
+  photo_wall_check_in:                    # C.3 网红打卡墙
+    behavior_pattern: C.3
+    description: 5 人在同一面墙打卡, 30 秒内拍完
+  daily_mix:                              # 通用日常
+    behavior_pattern: misc
+    description: 日常其他
+
+  # ─── ADR-0019 v0.3 旅游分布场景 ──────────────────────
+  hike_sparse_dense:                      # #4 徒步登山前疏后密 (扩展现 hike)
+    behavior_pattern: T.4
+    description: 上山前疏 (1-2 张) + 山顶密集 (5+ 张)
+  citywalk_uniform_low:                   # #13 Citywalk 低密度均匀
+    behavior_pattern: T.13
+    description: 城市漫步 5km, 均匀稀疏分布, 无明确密集点
+  fireworks_newyear:                      # #15 跨年烟花极密 + 跨业务日
+    behavior_pattern: T.15
+    description: 23:55 → 00:05 极短时间内大量烟花照片
+  checkin_multi_spot:                     # #18 网红打卡单点速拍跨城
+    behavior_pattern: T.18
+    description: 一天 5 个网红点, 每点 1-2 张速拍, 跨城几公里
+
+  # ─── ADR-0019 v0.4 补漏场景 ──────────────────────
+  burst_plus_gap:                         # T.21 连拍 + 长间隔混合
+    behavior_pattern: T.21
+    description: 5 张 1s 内连拍 + 1 张 30min 后, time T1 链式切分边界
+  multi_strong_theme:                      # TH.2 单图多 strong theme
+    behavior_pattern: TH.2
+    description: 单照同时含万圣节+晚宴+生日 等多个 strong theme
+
+albums: {}                                # 小王没历史相册 (新用户)
+
+photos:
+
+  # ─── C.7 演唱会连拍 8 张 (LLM 真实多样化, ADR-0021) ─────
+  - {id: w01, ts: 2026-04-22T20:30:00, gps: [31.300, 121.500], theme: [stage_lights, opening_scene, crowd],     subjects: [stage, light],   event: performance, tone: awe,  anchors: [热闹], scene: indoor, activity: gathering, hf: false, group: concert_burst, narrative: 演唱会开场, people: group}
+  - {id: w02, ts: 2026-04-22T20:30:05, gps: [31.300, 121.500], theme: [singer_microphone, spotlight, 主唱],     subjects: [singer, mic],    event: performance, tone: awe,  anchors: [热闹], scene: indoor, activity: gathering, hf: false, group: concert_burst, narrative: 主唱出场, people: group}
+  - {id: w03, ts: 2026-04-22T20:30:12, gps: [31.300, 121.500], theme: [motion_blur, neon_flash],               subjects: [stage, light],    event: performance, tone: awe,  anchors: [],     scene: indoor, activity: gathering, hf: false, group: concert_burst, narrative: 灯光模糊 (2 词), people: group}
+  - {id: w04, ts: 2026-04-22T20:30:20, gps: [31.300, 121.500], theme: [waving_hands, audience_silhouette, sea_of_people], subjects: [crowd, hand], event: performance, tone: warm, anchors: [热闹], scene: indoor, activity: gathering, hf: false, group: concert_burst, narrative: 观众挥手, people: group}
+  - {id: w05, ts: 2026-04-22T20:30:30, gps: [31.300, 121.500], theme: [singer_silhouette, ballad_moment, microphone_glow], subjects: [singer], event: performance, tone: awe, anchors: [], scene: indoor, activity: gathering, hf: false, group: concert_burst, narrative: 第二首歌, people: group}
+  - {id: w06, ts: 2026-04-22T20:30:40, gps: [31.300, 121.500], theme: [dance_choreography, backup_dancers, sync], subjects: [dancer],       event: performance, tone: awe,  anchors: [热闹], scene: indoor, activity: gathering, hf: false, group: concert_burst, narrative: 伴舞动作}
+  - {id: w07, ts: 2026-04-22T20:30:50, gps: [31.300, 121.500], theme: [pyrotechnics, sparks_shower, climax],   subjects: [stage, sparks],   event: performance, tone: awe,  anchors: [热闹], scene: indoor, activity: gathering, hf: false, group: concert_burst, narrative: 烟花特效, people: group}
+  - {id: w08, ts: 2026-04-22T20:31:00, gps: [31.300, 121.500], theme: [crowd_motion, blurred_arms],            subjects: [crowd],           event: performance, tone: awe,  anchors: [],     scene: indoor, activity: gathering, hf: false, group: concert_burst, narrative: 人群挥舞, people: group}
+
+  # ─── C.8 咖啡馆同地不同主体 8 张 (LLM 真实多样化) ────
+  - {id: w09, ts: 2026-04-26T14:00, gps: [31.230, 121.470], theme: [latte_art, heart_pattern, foam_swirl], subjects: [coffee_cup],     event: meal,         tone: warm,    anchors: [慢下来], scene: restaurant, activity: meal, hf: false, group: cafe_multi_subject, narrative: 拿铁拉花}
+  - {id: w10, ts: 2026-04-26T14:05, gps: [31.230, 121.470], theme: [espresso_shot, crema, 浓缩],          subjects: [coffee_cup],     event: meal,         tone: warm,    anchors: [],     scene: restaurant, activity: meal, hf: false, group: cafe_multi_subject, narrative: 浓缩}
+  - {id: w11, ts: 2026-04-26T14:10, gps: [31.230, 121.470], theme: [tiramisu, cocoa_dusting],            subjects: [dessert],        event: meal,         tone: warm,    anchors: [],     scene: restaurant, activity: meal, hf: false, group: cafe_multi_subject, narrative: 提拉米苏}
+  - {id: w12, ts: 2026-04-26T14:30, gps: [31.230, 121.470], theme: [smiling_friend, candid_portrait],    subjects: [friend, face],   event: gathering,    tone: warm,    anchors: [团聚], scene: restaurant, activity: meal, hf: false, group: cafe_multi_subject, narrative: 朋友 A 笑容, people: single}
+  - {id: w13, ts: 2026-04-26T14:45, gps: [31.230, 121.470], theme: [conversation, coffee_pause, leisure], subjects: [friend],        event: gathering,    tone: warm,    anchors: [闲聊], scene: restaurant, activity: meal, hf: false, group: cafe_multi_subject, narrative: 朋友 B 喝咖啡, people: single}
+  - {id: w14, ts: 2026-04-26T15:00, gps: [31.230, 121.470], theme: [hand_holding_book, reading_corner],   subjects: [hand, book],    event: daily_record, tone: serene,  anchors: [慢下来], scene: restaurant, activity: resting, hf: false, group: cafe_multi_subject, narrative: 朋友看书的手}
+  - {id: w15, ts: 2026-04-26T15:15, gps: [31.230, 121.470], theme: [ceramic_cup, side_lighting, texture],  subjects: [cup, light],   event: daily_record, tone: poetic,  anchors: [],   scene: restaurant, activity: resting, hf: false, group: cafe_multi_subject, narrative: 杯子上的光}
+  - {id: w16, ts: 2026-04-26T15:30, gps: [31.230, 121.470], theme: [second_latte, refill, oat_milk],      subjects: [coffee_cup],    event: meal,         tone: warm,    anchors: [],     scene: restaurant, activity: meal, hf: false, group: cafe_multi_subject, narrative: 第二杯拿铁}
+
+  # ─── C.6 GPS 漂移 (山区徒步) 5 张 (LLM 真实多样化) ────
+  - {id: w17, ts: 2026-04-29T09:00, gps: [29.120, 110.482], theme: [forest_path, trailhead, sunlight],    subjects: [trail],     event: outing,       tone: awe,    anchors: [山色, 远行], scene: travel, activity: walk, hf: false, group: hike_gps_drift, narrative: 山路起点}
+  - {id: w18, ts: 2026-04-29T09:45, gps: [29.122, 110.484], theme: [waterfall, mist_spray, rocks],        subjects: [waterfall], event: outing,       tone: poetic, anchors: [山色],       scene: travel, activity: walk, hf: false, group: hike_gps_drift, narrative: 半山瀑布}
+  - {id: w19, ts: 2026-04-29T10:30, gps: [29.117, 110.479], theme: [viewpoint_deck, panorama, 远眺],      subjects: [view],      event: daily_record, tone: serene, anchors: [慢下来],     scene: travel, activity: resting, hf: false, group: hike_gps_drift, narrative: 观景台休息}
+  - {id: w20, ts: 2026-04-29T11:30, gps: [29.121, 110.481], theme: [summit_marker, victory_pose, peak_sign], subjects: [peak, sign], event: outing,    tone: awe,    anchors: [山色, 远行], scene: travel, activity: walk, hf: false, group: hike_gps_drift, narrative: 山顶}
+  - {id: w21, ts: 2026-04-29T13:00, gps: [29.118, 110.480], theme: [trail_lunch, ham_sandwich],           subjects: [sandwich],  event: meal,         tone: warm,   anchors: [],          scene: travel, activity: meal, hf: false, group: hike_gps_drift, narrative: 山顶野餐}
+
+  # ─── C.4 一道菜多角度 5 张 (LLM 真实多样化) ──────
+  - {id: w22, ts: 2026-05-03T19:00, gps: [31.215, 121.460], theme: [ribeye, top_down_plate, garnish], subjects: [steak],          event: meal, tone: warm, anchors: [], scene: restaurant, activity: meal, hf: false, group: one_dish_multi_angle, narrative: 牛排俯拍}
+  - {id: w23, ts: 2026-05-03T19:01, gps: [31.215, 121.460], theme: [side_profile, knife_fork, 牛排],  subjects: [steak, fork],   event: meal, tone: warm, anchors: [], scene: restaurant, activity: meal, hf: false, group: one_dish_multi_angle, narrative: 牛排侧拍带叉子}
+  - {id: w24, ts: 2026-05-03T19:02, gps: [31.215, 121.460], theme: [grill_marks, juicy_texture],     subjects: [steak],          event: meal, tone: warm, anchors: [], scene: restaurant, activity: meal, hf: false, group: one_dish_multi_angle, narrative: 牛排纹理特写}
+  - {id: w25, ts: 2026-05-03T19:03, gps: [31.215, 121.460], theme: [medium_rare, pink_center, cut],  subjects: [steak, fork],   event: meal, tone: warm, anchors: [], scene: restaurant, activity: meal, hf: false, group: one_dish_multi_angle, narrative: 切一半}
+  - {id: w26, ts: 2026-05-03T19:04, gps: [31.215, 121.460], theme: [black_pepper_sauce, drizzle, gourmet], subjects: [steak, sauce], event: meal, tone: warm, anchors: [], scene: restaurant, activity: meal, hf: false, group: one_dish_multi_angle, narrative: 酱汁淋上}
+
+  # ─── C.3 网红打卡墙 4 张 (LLM 真实多样化) ──────
+  - {id: w27, ts: 2026-05-06T16:00:00, gps: [31.240, 121.480], theme: [pink_wall, instagram_pose],          subjects: [person, wall], event: gathering, tone: warm, anchors: [], scene: outdoor, activity: gathering, hf: false, group: photo_wall_check_in, narrative: 朋友 A 打卡, people: single}
+  - {id: w28, ts: 2026-05-06T16:00:08, gps: [31.240, 121.480], theme: [jumping_shot, mid_air, magenta_backdrop], subjects: [person, wall], event: gathering, tone: warm, anchors: [], scene: outdoor, activity: gathering, hf: false, group: photo_wall_check_in, narrative: 朋友 B 打卡, people: single}
+  - {id: w29, ts: 2026-05-06T16:00:15, gps: [31.240, 121.480], theme: [victory_sign, peace_pose, 网红墙],   subjects: [person, wall], event: gathering, tone: warm, anchors: [], scene: outdoor, activity: gathering, hf: false, group: photo_wall_check_in, narrative: 朋友 C 打卡, people: single}
+  - {id: w30, ts: 2026-05-06T16:00:25, gps: [31.240, 121.480], theme: [group_shot, friends_lineup, polaroid_style], subjects: [group, wall], event: gathering, tone: warm, anchors: [团聚], scene: outdoor, activity: gathering, hf: false, group: photo_wall_check_in, narrative: 5 人合影, people: group}
+
+  # ─── ADR-0019 v0.3 旅游分布场景 ─────────────────────
+
+  # #4 徒步登山前疏后密 4 张 (LLM 真实多样化)
+  - {id: w31, ts: 2026-05-10T08:00, gps: [29.120, 110.482], theme: [trailhead, easy_path, fresh_morning], subjects: [trail],      event: outing,    tone: serene, anchors: [慢下来, 远行], scene: travel, activity: walk, hf: false, group: hike_sparse_dense, narrative: 山脚起步}
+  - {id: w32, ts: 2026-05-10T10:30, gps: [29.123, 110.484], theme: [steep_section, tired_legs],          subjects: [path],       event: outing,    tone: serene, anchors: [山色], scene: travel, activity: walk, hf: false, group: hike_sparse_dense, narrative: 半山疲累 (前疏)}
+  - {id: w33, ts: 2026-05-10T12:00, gps: [29.126, 110.485], theme: [summit_view, panorama, achievement, 登顶], subjects: [peak, view], event: outing, tone: awe,    anchors: [山色, 远行], scene: travel, activity: walk, hf: false, group: hike_sparse_dense, narrative: 山顶第一张 (后密开始)}
+  - {id: w34, ts: 2026-05-10T12:02, gps: [29.126, 110.485], theme: [selfie_peak, friends_summit],        subjects: [self, peak], event: gathering, tone: awe,    anchors: [山色], scene: travel, activity: walk, hf: false, group: hike_sparse_dense, narrative: 山顶自拍, people: single}
+
+  # #13 Citywalk 低密度均匀 6 张 (LLM 真实多样化)
+  - {id: w35, ts: 2026-04-30T10:00, gps: [31.235, 121.470], theme: [shikumen_alley, morning_sun, 弄堂], subjects: [alley],     event: outing,       tone: warm,   anchors: [慢下来], scene: street, activity: walk, hf: false, group: citywalk_uniform_low, narrative: Citywalk 起点弄堂}
+  - {id: w36, ts: 2026-04-30T10:25, gps: [31.230, 121.465], theme: [cafe_window, foggy_glass],          subjects: [window],    event: daily_record, tone: poetic, anchors: [],     scene: street, activity: walk, hf: false, group: citywalk_uniform_low, narrative: 路过咖啡店}
+  - {id: w37, ts: 2026-04-30T10:50, gps: [31.226, 121.460], theme: [street_art, mural, graffiti],       subjects: [mural],     event: outing,       tone: warm,   anchors: [],     scene: street, activity: walk, hf: false, group: citywalk_uniform_low, narrative: 街角涂鸦}
+  - {id: w38, ts: 2026-04-30T11:15, gps: [31.222, 121.456], theme: [pocket_park, wooden_bench, shade],  subjects: [bench, tree], event: outing,     tone: serene, anchors: [慢下来], scene: outdoor, activity: walk, hf: false, group: citywalk_uniform_low, narrative: 街边小公园}
+  - {id: w39, ts: 2026-04-30T11:40, gps: [31.218, 121.452], theme: [indie_bookstore, wood_shelf],       subjects: [bookstore], event: outing,       tone: serene, anchors: [慢下来], scene: street, activity: walk, hf: false, group: citywalk_uniform_low, narrative: 独立书店门口}
+  - {id: w40, ts: 2026-04-30T12:00, gps: [31.214, 121.448], theme: [bistro, brunch_menu],               subjects: [restaurant], event: meal,        tone: warm,   anchors: [],     scene: restaurant, activity: meal, hf: false, group: citywalk_uniform_low, narrative: Citywalk 终点吃饭}
+
+  # #15 跨年烟花跨日 8 张 (LLM 真实多样化)
+  - {id: w41, ts: 2026-04-30T23:55, gps: [31.235, 121.490], theme: [night_sky, anticipation, crowd_waiting],   subjects: [sky, crowd], event: celebration, tone: awe,    anchors: [喜庆, 远行], scene: outdoor, activity: gathering, hf: false, group: fireworks_newyear, narrative: 跨年倒数 5 分钟, people: group}
+  - {id: w42, ts: 2026-04-30T23:58, gps: [31.235, 121.490], theme: [first_burst, white_sparks],                subjects: [fireworks],  event: celebration, tone: awe,    anchors: [喜庆], scene: outdoor, activity: gathering, hf: false, group: fireworks_newyear, narrative: 第一波烟花, people: group}
+  - {id: w43, ts: 2026-04-30T23:59, gps: [31.235, 121.490], theme: [red_bloom, chrysanthemum_shape, 烟花],     subjects: [fireworks],  event: celebration, tone: awe,    anchors: [喜庆], scene: outdoor, activity: gathering, hf: false, group: fireworks_newyear, narrative: 红色烟花, people: group}
+  - {id: w44, ts: 2026-05-01T00:00, gps: [31.235, 121.490], theme: [midnight_burst, climax, multicolor],       subjects: [fireworks],  event: celebration, tone: awe,    anchors: [喜庆, 团圆], scene: outdoor, activity: gathering, hf: false, group: fireworks_newyear, narrative: 午夜跨年高潮, people: group}
+  - {id: w45, ts: 2026-05-01T00:01, gps: [31.235, 121.490], theme: [embrace, joy_moment, new_year],            subjects: [crowd, hug], event: celebration, tone: warm,   anchors: [团圆], scene: outdoor, activity: gathering, hf: false, group: fireworks_newyear, narrative: 跟朋友拥抱, people: group}
+  - {id: w46, ts: 2026-05-01T00:03, gps: [31.235, 121.490], theme: [gold_sparks, willow_pattern],              subjects: [fireworks],  event: celebration, tone: awe,    anchors: [喜庆], scene: outdoor, activity: gathering, hf: false, group: fireworks_newyear, narrative: 金色烟花, people: group}
+  - {id: w47, ts: 2026-05-01T00:05, gps: [31.235, 121.490], theme: [smoke_drift, finale_fade],                 subjects: [smoke, sky], event: celebration, tone: nostalgic, anchors: [], scene: outdoor, activity: gathering, hf: false, group: fireworks_newyear, narrative: 烟花尾声, people: group}
+  - {id: w48, ts: 2026-05-01T00:08, gps: [31.235, 121.490], theme: [crowd_dispersing, after_celebration],      subjects: [crowd],      event: gathering,   tone: nostalgic, anchors: [告别], scene: outdoor, activity: gathering, hf: false, group: fireworks_newyear, narrative: 散场, people: group}
+
+  # #18 网红打卡跨城多点 5 张 (LLM 真实多样化)
+  - {id: w49, ts: 2026-05-11T10:00, gps: [31.230, 121.475], theme: [graffiti_alley, mural_art],              subjects: [mural],   event: gathering, tone: warm,   anchors: [], scene: street, activity: gathering, hf: false, group: checkin_multi_spot, narrative: 网红涂鸦弄堂, people: single}
+  - {id: w50, ts: 2026-05-11T11:00, gps: [31.225, 121.460], theme: [latte_window_seat, foam_art],            subjects: [cafe],    event: meal,      tone: warm,   anchors: [], scene: restaurant, activity: meal, hf: false, group: checkin_multi_spot, narrative: 网红咖啡, people: single}
+  - {id: w51, ts: 2026-05-11T12:30, gps: [31.218, 121.453], theme: [pink_facade, photo_pose, 打卡],          subjects: [wall, self], event: gathering, tone: warm, anchors: [], scene: outdoor, activity: gathering, hf: false, group: checkin_multi_spot, narrative: 网红粉墙, people: single}
+  - {id: w52, ts: 2026-05-11T14:00, gps: [31.210, 121.445], theme: [matcha_dessert, ice_cream_cone],         subjects: [dessert], event: meal,      tone: warm,   anchors: [], scene: restaurant, activity: meal, hf: false, group: checkin_multi_spot, narrative: 网红甜品, people: single}
+  - {id: w53, ts: 2026-05-11T16:00, gps: [31.205, 121.438], theme: [iron_bridge, sunset_view, river],        subjects: [bridge, sky], event: outing, tone: poetic, anchors: [晚霞], scene: outdoor, activity: walk, hf: false, group: checkin_multi_spot, narrative: 网红观景桥, people: single}
+
+  # ─── v0.4 补漏 ──────────────────────────────────
+
+  # T.21 连拍 + 长间隔混合 6 张 (LLM 真实多样化)
+  - {id: w54, ts: 2026-05-12T16:00:00, gps: [31.234, 121.485], theme: [child_jumping, motion_blur, playground], subjects: [child], event: gathering, tone: warm, anchors: [童趣], scene: outdoor, activity: gathering, hf: false, group: burst_plus_gap, narrative: 连拍第 1 张 (孩子起跳), people: single}
+  - {id: w55, ts: 2026-05-12T16:00:01, gps: [31.234, 121.485], theme: [mid_air, freeze_frame],                  subjects: [child], event: gathering, tone: warm, anchors: [童趣], scene: outdoor, activity: gathering, hf: false, group: burst_plus_gap, narrative: 连拍第 2 张 (空中), people: single}
+  - {id: w56, ts: 2026-05-12T16:00:02, gps: [31.234, 121.485], theme: [landing_pose, bent_knees, grass],        subjects: [child], event: gathering, tone: warm, anchors: [童趣], scene: outdoor, activity: gathering, hf: false, group: burst_plus_gap, narrative: 连拍第 3 张 (落地), people: single}
+  - {id: w57, ts: 2026-05-12T16:00:03, gps: [31.234, 121.485], theme: [smile, joy_capture, 童趣],               subjects: [child], event: gathering, tone: warm, anchors: [童趣], scene: outdoor, activity: gathering, hf: false, group: burst_plus_gap, narrative: 连拍第 4 张 (笑), people: single}
+  - {id: w58, ts: 2026-05-12T16:00:04, gps: [31.234, 121.485], theme: [running_to_mom, embrace, family_moment], subjects: [child, parent], event: gathering, tone: warm, anchors: [童趣, 团圆], scene: outdoor, activity: gathering, hf: false, group: burst_plus_gap, narrative: 连拍第 5 张 (跑向妈妈), people: single}
+  - {id: w59, ts: 2026-05-12T16:30:00, gps: [31.234, 121.485], theme: [bench_rest, snack_break, calm_after],    subjects: [bench, snack], event: daily_record, tone: serene, anchors: [慢下来], scene: outdoor, activity: resting, hf: false, group: burst_plus_gap, narrative: 30 分钟后休息}
+
+  # TH.2 单图多 strong theme 3 张 (万圣节+晚宴+生日 等多重 event 主题)
+  - {id: w60, ts: 2026-05-13T19:00, gps: [31.240, 121.475], theme: [halloween, dinner, birthday, costume, cake], subjects: [pumpkin, cake, costume, candle, friend], event: celebration, tone: warm, anchors: [喜庆, 团聚, 童趣], scene: indoor, activity: gathering, hf: false, group: multi_strong_theme, narrative: 万圣节晚宴生日三合一}
+  - {id: w61, ts: 2026-05-13T19:30, gps: [31.240, 121.475], theme: [costume, pumpkin, decoration, dinner_table, cocktail], subjects: [pumpkin, table, drinks], event: celebration, tone: warm, anchors: [喜庆, 装饰], scene: indoor, activity: gathering, hf: false, group: multi_strong_theme, narrative: 多主题装饰 (pumpkin+表+酒)}
+  - {id: w62, ts: 2026-05-13T20:00, gps: [31.240, 121.475], theme: [birthday_cake, candles, halloween_mask], subjects: [cake, mask, friend], event: celebration, tone: warm, anchors: [喜庆, 童趣], scene: indoor, activity: gathering, hf: false, group: multi_strong_theme, narrative: 戴万圣面具吹生日蜡烛, people: group}

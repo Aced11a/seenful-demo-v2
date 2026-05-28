@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>api_harness · L2 API Dashboard</title>
+<style>
+  :root { --bg:#0f172a; --panel:#1e293b; --text:#e2e8f0; --muted:#94a3b8; --line:#334155; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; background: var(--bg); color: var(--text);
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+         font-size: 14px; line-height: 1.55; }
+  header > h1 { margin: 0 0 4px; font-size: 22px; }
+  .meta { color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+  .meta code { background: var(--panel); padding: 1px 6px; border-radius: 3px; }
+  .counts { margin: 8px 0 24px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px;
+           color: white; font-weight: 600; font-size: 12px; margin-right: 6px; }
+  .badge em { font-style: normal; background: rgba(0,0,0,.25); padding: 0 6px; border-radius: 4px; margin-left: 4px; }
+  section.path-block { margin-bottom: 32px; }
+  section h2 { font-size: 18px; margin: 0 0 12px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+  section h2 .n { color: var(--muted); font-size: 12px; font-weight: normal; }
+  article.case { background: var(--panel); border-left: 4px solid var(--vc, #6b7280);
+                 padding: 12px 16px; margin-bottom: 12px; border-radius: 6px; }
+  .case-h { display: flex; gap: 12px; align-items: center; margin-bottom: 4px; }
+  .case-h .verdict { padding: 2px 8px; border-radius: 4px; color: white; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+  .case-h strong { font-size: 15px; }
+  .detail { color: var(--muted); font-size: 12px; margin-bottom: 8px; padding-left: 2px; }
+  table.pair { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
+  table.pair th, table.pair td { padding: 4px 8px; text-align: left; vertical-align: top; }
+  table.pair thead th { color: var(--muted); border-bottom: 1px solid var(--line); font-weight: 500; font-size: 11px; }
+  table.pair tbody th { color: var(--muted); font-weight: 500; width: 30%; }
+  table.pair td.exp { color: #cbd5e1; width: 32%; }
+  table.pair td.act { color: #cbd5e1; width: 38%; }
+  table.pair td.act.diff { color: #fbbf24; background: rgba(251, 191, 36, 0.08); }
+  .extra { margin-top: 6px; font-size: 12px; }
+  .extra code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 3px; font-size: 11px; }
+  .extra.warn { color: #fbbf24; }
+  .extra.muted { color: var(--muted); }
+  footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+  footer p { margin: 4px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>api_harness · 后端 L2 API 测试看板</h1>
+  <div class="meta">
+    数据源: <code>api_harness\results\run_20260528_110915.json</code>
+    · 生成: 2026-05-28 11:09:47
+    · 共 <strong>3</strong> 条
+    · 通过率 <strong>33.3%</strong>(match+acceptable / total)
+  </div>
+  <div class="counts"><span class="badge" style="background:#16a34a;">match <em>1</em></span> <span class="badge" style="background:#dc2626;">mismatch <em>2</em></span></div>
+</header>
+<section class="path-block"><h2>L2 <span class="n">(1 条)</span></h2>
+<article class="case" style="--vc:#16a34a;">
+  <header class="case-h">
+    <span class="verdict" style="background:#16a34a;">match</span>
+    <strong>zhang_L2_hospital_sensitive</strong>
+  </header>
+  <div class="detail">display_decision &#x27;suppress&#x27; == &#x27;suppress&#x27;</div>
+  <table class="pair"><thead><tr><th></th><th>期望(产品意图)</th><th>后端实际</th></tr></thead>
+    <tbody><tr><th>display_decision / displayDecisionCode</th><td class="exp">suppress</td><td class="act">suppress</td></tr><tr><th>decision_tier / decisionTierCode</th><td class="exp">—</td><td class="act diff">[&#x27;&#x27;, &#x27;&#x27;, &#x27;&#x27;]</td></tr><tr><th>min_recalled / 召回数</th><td class="exp">—</td><td class="act diff">3</td></tr><tr><th>route(后端实际走的路径)</th><td class="exp">L2</td><td class="act diff">L2_5</td></tr><tr><th>decisionRemark(真值表 pattern)</th><td class="exp">—</td><td class="act diff">not_enough_valid_photos_after_candidate_filter</td></tr><tr><th>miniAlbumId(s)</th><td class="exp">—</td><td class="act diff">[]</td></tr></tbody></table>
+  <div class="extra muted">🧹 本场景 mockBizIds(teardown 删): <code>[460092]</code></div>
+</article>
+</section><section class="path-block"><h2>L2.5 <span class="n">(1 条)</span></h2>
+<article class="case" style="--vc:#dc2626;">
+  <header class="case-h">
+    <span class="verdict" style="background:#dc2626;">mismatch</span>
+    <strong>li_L25_xihu_auto_merge</strong>
+  </header>
+  <div class="detail">期望 [&#x27;auto_merge&#x27;, &#x27;ask_user&#x27;]→[&#x27;ask_user&#x27;, &#x27;auto_merge&#x27;],实际 [&#x27;no_merge&#x27;]</div>
+  <table class="pair"><thead><tr><th></th><th>期望(产品意图)</th><th>后端实际</th></tr></thead>
+    <tbody><tr><th>display_decision / displayDecisionCode</th><td class="exp">—</td><td class="act diff"></td></tr><tr><th>decision_tier / decisionTierCode</th><td class="exp">[&#x27;auto_merge&#x27;, &#x27;ask_user&#x27;]</td><td class="act diff">[&#x27;no_merge&#x27;]</td></tr><tr><th>min_recalled / 召回数</th><td class="exp">—</td><td class="act diff">1</td></tr><tr><th>route(后端实际走的路径)</th><td class="exp">L2.5</td><td class="act diff">L2_5</td></tr><tr><th>decisionRemark(真值表 pattern)</th><td class="exp">—</td><td class="act diff"></td></tr><tr><th>miniAlbumId(s)</th><td class="exp">—</td><td class="act diff">[]</td></tr></tbody></table>
+  <div class="extra">📦 setup 已建集 miniAlbumId: <code>[10]</code></div><div class="extra muted">🧹 本场景 mockBizIds(teardown 删): <code>[460093, 460094]</code></div>
+</article>
+</section><section class="path-block"><h2>cascade <span class="n">(1 条)</span></h2>
+<article class="case" style="--vc:#dc2626;">
+  <header class="case-h">
+    <span class="verdict" style="background:#dc2626;">mismatch</span>
+    <strong>zhang_cascade_balcony_recall</strong>
+  </header>
+  <div class="detail">期望 [&#x27;create_new_album&#x27;]→[&#x27;create_new_album&#x27;],实际 [&#x27;no_merge&#x27;] | 期望召回 ≥ 3,实际 album_ids=[], photo_count=1</div>
+  <table class="pair"><thead><tr><th></th><th>期望(产品意图)</th><th>后端实际</th></tr></thead>
+    <tbody><tr><th>display_decision / displayDecisionCode</th><td class="exp">—</td><td class="act diff"></td></tr><tr><th>decision_tier / decisionTierCode</th><td class="exp">create_new_album</td><td class="act diff">[&#x27;no_merge&#x27;]</td></tr><tr><th>min_recalled / 召回数</th><td class="exp">3</td><td class="act diff">1</td></tr><tr><th>route(后端实际走的路径)</th><td class="exp">cascade</td><td class="act diff">L2_5</td></tr><tr><th>decisionRemark(真值表 pattern)</th><td class="exp">—</td><td class="act diff"></td></tr><tr><th>miniAlbumId(s)</th><td class="exp">—</td><td class="act diff">[]</td></tr></tbody></table>
+  <div class="extra muted">🧹 本场景 mockBizIds(teardown 删): <code>[348477, 348478]</code></div>
+</article>
+</section>
+<footer>
+  <p><strong>读图规则</strong> · 期望按"产品意图应不应该成集"写(CLAUDE 第4条 / TEST_PLAN §7),不是猜后端怎么走。<code>mismatch</code> = 后端算法与产品意图的 gap,**不改 expected 去迎合后端**。</p>
+  <p><code>unmapped</code> = code_map 还没填该期望词的后端码,补上 reference/code_map.json 后重跑会变 match/mismatch。<code>BLOCKED</code> = L2.5/cascade 前置 setup 没成集,不算 mismatch(可能是 seed/pool 选得不对或后端 setup 阶段就拒了)。<code>deferred</code> = ⛔ 场景本轮不发请求(缺 GPS/time 信号)。</p>
+  <p>隔离: per-mockBizId 账本 teardown(SPEC §1/§3);后端整库 wipe 模式 pending Ace 与后端再确认。</p>
+</footer></body></html>

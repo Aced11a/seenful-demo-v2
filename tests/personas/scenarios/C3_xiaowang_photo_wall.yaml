@@ -1,0 +1,19 @@
+name: C.3 小王网红打卡墙 30 秒 4 人同墙
+persona: xiaowang
+behavior_pattern: C.3
+test_path: L2
+product_intent: 同一面墙不同人打卡, 应识别为集体打卡而非误聚
+input:
+  new_photos:
+  - w27
+  - w28
+  - w29
+  - w30
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: 同 GPS + 30 秒 + theme 一致 (pink wall), people 多次切换
+test_type: robustness

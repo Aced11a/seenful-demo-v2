@@ -1,0 +1,14 @@
+name: L2.5 小王演唱会照 vs 张奶奶公园相册 → no_merge (跨用户反例)
+persona: xiaowang
+behavior_pattern: L25.cross_user
+test_path: L2.5
+test_type: robustness
+product_intent: 演唱会照 vs 公园相册 (不同 persona), 主题完全不同, no_merge
+input:
+  new_photo: w01
+  old_albums: []
+expected:
+  decision_tier: ['ask_user', 'no_merge']
+invariants:
+- INV-01
+notes: 空 album 列表测试

@@ -1,0 +1,18 @@
+name: A.1 张奶奶保险式重复拍 3 张同物 30 秒内
+persona: laoqi_zhang
+behavior_pattern: A.1
+test_path: L2
+product_intent: 3 张同物体不应被错误升 strong, 算法应识别为保险拍而非真 burst
+input:
+  new_photos:
+  - z02
+  - z03
+  - z04
+expected:
+  display_decision: show_mini_album
+  acceptable:
+    display_decision: show_inline_hint
+invariants:
+- INV-01
+notes: '3 张白兰花特写, 同 30 秒内. 期望: 不被识别为强信号成集'
+test_type: robustness
