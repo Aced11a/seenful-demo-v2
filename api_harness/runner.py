@@ -49,6 +49,7 @@ _HERE = Path(__file__).resolve().parent
 _CASES_DIR = _HERE / "cases"
 _RESULTS_DIR = _HERE / "results"
 _CODE_MAP_PATH = _HERE / "reference" / "code_map.json"
+_TRUTH_TABLE_PATH = _HERE / "reference" / "truth_table.json"
 
 
 @dataclass
@@ -72,6 +73,30 @@ class CaseResult:
 
 def load_code_map() -> dict[str, Any]:
     return json.loads(_CODE_MAP_PATH.read_text(encoding="utf-8"))
+
+
+def load_truth_table() -> dict[str, dict]:
+    """真值表 pattern → {trigger(人话), decision_tier}. 按路径(L2/L2.5/cascade)分组。"""
+    return json.loads(_TRUTH_TABLE_PATH.read_text(encoding="utf-8"))
+
+
+def _pattern_explain(patterns: list[str], path: str, truth_table: dict[str, dict]) -> list[dict[str, str]]:
+    """把一组 truthTablePattern 翻成人话条目(用于 dashboard 归因区)。"""
+    section = truth_table.get(path) or {}
+    # 兼容 L2.5 路径名 "L2.5" 在 case yaml / "L2_5" 在后端 route
+    if path in ("L2_5", "l2_5"):
+        section = truth_table.get("L2.5") or {}
+    out = []
+    for p in patterns:
+        if not p:
+            continue
+        info = section.get(p) or truth_table.get("L2.5", {}).get(p) or {}  # 兜底找 L2.5 (大多数)
+        out.append({
+            "pattern": p,
+            "trigger": info.get("trigger", "(无注解,truth_table.json 待补)"),
+            "decision_tier": info.get("decision_tier", "—"),
+        })
+    return out
 
 
 def load_cases(filter_substr: str | None = None) -> list[dict]:
@@ -117,6 +142,8 @@ def _extract_actual(body: dict[str, Any]) -> dict[str, Any]:
             "per_photo_patterns": sorted({p.get("truthTablePattern") for p in photos if p.get("truthTablePattern")}),
             "per_photo_tier_descs": sorted({p.get("decisionTierDesc") for p in photos if p.get("decisionTierDesc")}),
             "per_photo_final_descs": sorted({p.get("finalResultDesc") for p in photos if p.get("finalResultDesc") and p.get("finalResultDesc") != "初始化"}),
+            # pattern → 人话(从 reference/truth_table.json 查)注入,extract 时不查表,在 run_case 注入(需要 path 上下文)
+            "patterns_explained": [],
         },
     }
 
@@ -219,7 +246,7 @@ def _photos_and_tags(persona_id: str, ids: list[str], theme_map, sample, missing
     return photos, tags
 
 
-def run_case(case: dict, *, theme_map, sample, code_map, do_teardown: bool = True) -> CaseResult:
+def run_case(case: dict, *, theme_map, sample, code_map, truth_table, do_teardown: bool = True) -> CaseResult:
     """单场景隔离 session(§3 loop):setup → trigger → 取结果 → 比对 → teardown 逐个删 mockBizId。"""
     cid = case.get("id", case.get("_file", "?"))
     path = case.get("path", "?")
@@ -287,6 +314,11 @@ def run_case(case: dict, *, theme_map, sample, code_map, do_teardown: bool = Tru
         res.raw["trigger"] = body
         res.actual = _extract_actual(body)
         res.missing_themes = sorted(missing)
+        # 把 pattern 翻成人话注入 reasons(后端 route 用 L2_5,case path 用 L2.5,两边都试)
+        patterns = (res.actual.get("reasons") or {}).get("per_photo_patterns") or []
+        if patterns:
+            backend_route = res.actual.get("route") or path
+            res.actual["reasons"]["patterns_explained"] = _pattern_explain(patterns, backend_route, truth_table)
 
         # ── 比对 ──
         res.verdict, res.detail = compare(case, res.actual, code_map)
@@ -317,6 +349,7 @@ def main() -> None:
     theme_map = adapter.load_theme_map()
     sample = adapter.load_sample()
     code_map = load_code_map()
+    truth_table = load_truth_table()
     cases = load_cases(args.filter)
 
     print("=" * 72)
@@ -328,7 +361,7 @@ def main() -> None:
     results: list[CaseResult] = []
     for c in cases:
         print(f"\n▶ {c.get('id')} [{c.get('path')}] ({c['_file']})")
-        r = run_case(c, theme_map=theme_map, sample=sample, code_map=code_map, do_teardown=not args.keep)
+        r = run_case(c, theme_map=theme_map, sample=sample, code_map=code_map, truth_table=truth_table, do_teardown=not args.keep)
         results.append(r)
         mark = {"match": "✓", "acceptable": "≈", "mismatch": "✗", "BLOCKED": "▣",
                 "deferred": "⊘", "error": "!", "unmapped": "?"}.get(r.verdict, "?")

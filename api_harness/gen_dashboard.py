@@ -126,15 +126,22 @@ def _render_reasons(actual: dict) -> str:
     if not any(r.values()):
         return ""
 
-    # summary 速览:挑最关键的 1-2 个 token
+    explained = r.get("patterns_explained") or []  # 每条:{pattern, trigger(人话), decision_tier}
+
+    # summary 速览:pattern + 人话触发条件
     summary_bits: list[str] = []
-    if r.get("per_photo_patterns"):
+    if explained:
+        for e in explained:
+            summary_bits.append(
+                f'<code class="pat">{html.escape(e["pattern"])}</code>'
+                f' <span class="pat-trigger">{html.escape(e["trigger"])}</span>'
+                f' → <em>{html.escape(e["decision_tier"])}</em>'
+            )
+    elif r.get("per_photo_patterns"):
         for p in r["per_photo_patterns"]:
             summary_bits.append(f'<code class="pat">{html.escape(str(p))}</code>')
     elif r.get("top_remark"):
         summary_bits.append(f'<code class="rmk">{html.escape(str(r["top_remark"]))}</code>')
-    if r.get("per_photo_tier_descs"):
-        summary_bits.append(" · ".join(f'<em>{html.escape(str(d))}</em>' for d in r["per_photo_tier_descs"]))
     summary_html = "  ".join(summary_bits) if summary_bits else "(点开查看)"
 
     rows = []
@@ -142,7 +149,15 @@ def _render_reasons(actual: dict) -> str:
         rows.append(f'<div><span class="rl">顶层判断</span><code>{html.escape(str(r["top_decision"]))}</code></div>')
     if r.get("top_remark"):
         rows.append(f'<div><span class="rl">decisionRemark</span><code class="rmk">{html.escape(str(r["top_remark"]))}</code></div>')
-    if r.get("per_photo_patterns"):
+    if explained:
+        for e in explained:
+            rows.append(
+                f'<div><span class="rl">真值表 pattern</span>'
+                f'<code class="pat">{html.escape(e["pattern"])}</code> '
+                f'<span class="pat-trigger">{html.escape(e["trigger"])}</span> '
+                f'→ <em class="tier">{html.escape(e["decision_tier"])}</em></div>'
+            )
+    elif r.get("per_photo_patterns"):
         codes = " ".join(f'<code class="pat">{html.escape(str(p))}</code>' for p in r["per_photo_patterns"])
         rows.append(f'<div><span class="rl">真值表 pattern</span>{codes}</div>')
     if r.get("per_photo_tier_descs"):
@@ -392,7 +407,10 @@ _HEADER = """<!DOCTYPE html>
                                                    padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 13px; }
   details.reasons-fold .reason-summary code.rmk { background: var(--rmk-bg); color: var(--rmk-fg);
                                                    padding: 2px 8px; border-radius: 4px; font-size: 13px; }
-  details.reasons-fold .reason-summary em { color: #334155; font-style: normal; }
+  details.reasons-fold .reason-summary em { color: #334155; font-style: normal; font-weight: 600; }
+  /* pattern 人话(从 truth_table.json 注入)*/
+  .pat-trigger { color: #334155; font-size: 13px; font-style: italic; }
+  .reasons-body em.tier { font-weight: 700; color: #1e293b; }
   .reasons-body { padding: 10px 14px; }
   .reasons-body > div { padding: 4px 0; font-size: 14px; }
   .reasons-body .rl { display: inline-block; min-width: 140px; color: var(--muted); font-size: 13px; }

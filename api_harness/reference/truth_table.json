@@ -1,0 +1,56 @@
+{
+  "description": "真值表:pattern 码值 → 触发条件(人话)+ decision_tier. 来自 Ace 2026-05-28 提供. dashboard 会把后端返回的 truthTablePattern 拿这表渲染人话原因.",
+  "L2.5": {
+    "G-A1": {
+      "trigger": "location=强 + theme/event/people 至少一个 ≥ 中",
+      "decision_tier": "auto_merge"
+    },
+    "G-A2": {
+      "trigger": "location=强 + 无主题/事件/人物叠加",
+      "decision_tier": "ask_user"
+    },
+    "G-B1": {
+      "trigger": "theme=强 + 无 location 矛盾",
+      "decision_tier": "auto_merge"
+    },
+    "G-B2": {
+      "trigger": "event=强 + 无 location 矛盾",
+      "decision_tier": "auto_merge"
+    },
+    "G-B3": {
+      "trigger": "people=强 + 无 location 矛盾",
+      "decision_tier": "auto_merge"
+    },
+    "G-C1": {
+      "trigger": "location=中 + theme/event/people 至少一个 ≥ 中",
+      "decision_tier": "auto_merge"
+    },
+    "G-C2": {
+      "trigger": "location=中 + 仅辅证叠加",
+      "decision_tier": "ask_user"
+    },
+    "G-D1": {
+      "trigger": "单一主载体「中」",
+      "decision_tier": "ask_user"
+    },
+    "G-E1": {
+      "trigger": "多个主载体「弱」+ 至少 2 辅证「中」",
+      "decision_tier": "ask_user"
+    },
+    "G-F1": {
+      "trigger": "不命中以上",
+      "decision_tier": "no_merge"
+    },
+    "no_candidate_album": {
+      "trigger": "候选筛选阶段未找到任何候选老相册",
+      "decision_tier": "no_merge",
+      "_note": "非真值表 pattern,是候选过滤器的早终止信号(SPEC §9 实证)"
+    }
+  },
+  "L2": {
+    "_note": "L2 主路径的 policy_final_* pattern 表(28 条)待 Ace 提供. 已观测: policy_final_A2 / policy_final_A3 / policy_final_C2"
+  },
+  "cascade": {
+    "_note": "cascade 真值表 待 Ace 提供. 但实证显示后端目前 cascade 路径疑似缺失,所有 cascade pool 单张提交都是 no_candidate_album."
+  }
+}
