@@ -7,11 +7,8 @@ setup:
   seed_photos:
   - z07
   - z09
-  - z14
-  - z17
-  - z22
-  - z26
-  setup_rationale: weekly_park_walk_album ← ['z07', 'z09', 'z14', 'z17', 'z22', 'z26']
+  - z31
+  setup_rationale: weekly_park_walk_album ← ['z07', 'z09', 'z31']
 trigger:
   photos:
   - z01

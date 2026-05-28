@@ -7,11 +7,10 @@ setup:
   seed_photos:
   - l01
   - l02
-  - l03
   - l04
   - l05
   - l06
-  setup_rationale: past_xihu_album ← ['l01', 'l02', 'l03', 'l04', 'l05', 'l06']
+  setup_rationale: past_xihu_album ← ['l01', 'l02', 'l04', 'l05', 'l06']
 trigger:
   photos:
   - l93

@@ -112,12 +112,14 @@ VERDICT_MAP: dict[str, tuple[str, str | None]] = {
     "CB_15_zhang_sensitive_no_recall": ("deferred", "cascade_pending"),
 }
 
-# album → seed photos(persona group 直接对应,scaffolder 会过滤掉 trigger 重复)
+# album → seed photos(主题最齐的子集,实证能让后端走 policy_final_A*/C* 成集而非 F1 suppress)
+# 2026-05-28 实证:含杂主题成员(如 l03 tea_house / z14 pond)会触发 F1 suppress;
+# 子集挑得集中(主题词重合)才稳定成集。
 SEED_MAP: dict[str, list[str]] = {
-    "past_xihu_album":          ["l01", "l02", "l03", "l04", "l05", "l06"],          # lake_overnight 全 6
-    "pick_grandkid_album":      ["l34", "l35", "l36", "l37", "l38"],                  # pick_grandkid_routine 全 5
-    "weekly_park_walk_album":   ["z07", "z09", "z14", "z17", "z22", "z26"],           # weekly_park_walk 前 6
-    "granddaughter_album":      ["z38", "z39", "z40", "z41", "z42", "z43"],           # granddaughter_birthday_at_home 全 6
+    "past_xihu_album":          ["l01", "l02", "l04", "l05", "l06"],                  # 5 张 lake(排除 l03 tea_house 稀释)
+    "pick_grandkid_album":      ["l34", "l35", "l36", "l37", "l38"],                  # 5 张 grandkid/routine
+    "weekly_park_walk_album":   ["z07", "z09", "z31"],                                # 3 张 garden 强(z14/17/22/26 主题杂会 F1 suppress)
+    "granddaughter_album":      ["z38", "z39", "z40", "z41", "z42", "z43"],           # 6 张 family/birthday(实证能成集)
 }
 
 DEFER_HUMAN: dict[str, str] = {
