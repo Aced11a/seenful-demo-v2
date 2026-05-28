@@ -1,0 +1,21 @@
+id: C4_xiaowang_steak_5_angles
+source_scenario: C4_xiaowang_steak_5_angles.yaml
+persona: xiaowang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - w22
+  - w23
+  - w24
+  - w25
+  - w26
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: 同 GPS 同 event 60 秒, theme 高度同质. 看算法是否聚成 / 散沙
+product_intent: 同一道牛排 5 角度近相同照, 不应被 K_outer 散沙误判 + 不应升 burst strong

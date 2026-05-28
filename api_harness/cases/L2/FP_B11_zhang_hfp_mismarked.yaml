@@ -1,0 +1,14 @@
+id: FP_B11_zhang_hfp_mismarked
+source_scenario: FP_B11_zhang_hfp_mismarked.yaml
+persona: laoqi_zhang
+path: L2
+verdict: deferred
+defer_reason: loc
+defer_reason_human: GPS / 位置信号缺失,本轮无法触发该判定面
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 B11. demo 阶段 user_context=None 默认不判 low_quality, hf 字段全靠 L1 标对. 此 case 模拟 L1 漏标 (现实常见). 期望 final=strong 成集, 暴露"HFP 防御依赖 L1 字段正确性"
+  的脆弱性. 红线
+product_intent: 5 张家里晚饭 (同 GPS 31.300,120.590 + 5 天连续 meal), 但 L1 漏标 hf=true → HR-BANDS-01 不触发 → location strong 不降档 → 假阳成"家晚饭相册"

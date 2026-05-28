@@ -1,0 +1,19 @@
+id: FP_B3_zhang_event_activity_walk_drill
+source_scenario: FP_B3_zhang_event_activity_walk_drill.yaml
+persona: laoqi_zhang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - fz19
+  - fz20
+  - fz21
+  - fz22
+  - fz23
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 B3. E.1 设计良好的对抗例 (event_primary_share=0.2 < 1.0 → E.6 weak). 期望 event=weak, 整批 final 不进 strong. 此 case 验证 E.1 设计正确 (algorithm 应通过).
+product_intent: 5 张 event 各异 (meal/work/outing/gathering/daily_record), activity 都 walk. 算法 E.1 严格要求 event=1.0, 此 case 应**不通过** E.1, 走 E.6 weak

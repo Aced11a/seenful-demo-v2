@@ -1,0 +1,24 @@
+id: C8_xiaowang_cafe_multi_subject
+source_scenario: C8_xiaowang_cafe_multi_subject.yaml
+persona: xiaowang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - w09
+  - w10
+  - w11
+  - w12
+  - w13
+  - w14
+  - w15
+  - w16
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: 同 GPS + event=meal/gathering 混 + theme cafe/friend 主体切换
+product_intent: 同一咖啡馆但 2 个不同主体 (咖啡 vs 朋友), 多维度博弈应拆集

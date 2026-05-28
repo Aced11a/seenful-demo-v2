@@ -1,0 +1,16 @@
+id: CB_05_zhang_balcony_recall
+source_scenario: CB_05_zhang_balcony_recall.yaml
+persona: laoqi_zhang
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: create_new_album
+invariants:
+- INV-01
+- INV-04
+- INV-05
+- INV-06
+notes: 基础正例
+product_intent: 'cascade 基础正例: 新照跟池里 4 张同主题, 应 create_new_album'

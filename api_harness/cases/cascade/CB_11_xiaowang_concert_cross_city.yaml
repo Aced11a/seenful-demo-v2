@@ -1,0 +1,13 @@
+id: CB_11_xiaowang_concert_cross_city
+source_scenario: CB_11_xiaowang_concert_cross_city.yaml
+persona: xiaowang
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-01
+notes: 跨主题
+product_intent: 演唱会单张 vs 池里无相关, no_backfill

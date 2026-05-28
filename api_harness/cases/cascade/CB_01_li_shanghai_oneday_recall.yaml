@@ -1,0 +1,14 @@
+id: CB_01_li_shanghai_oneday_recall
+source_scenario: CB_01_li_shanghai_oneday_recall.yaml
+persona: laoli_youke
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: create_new_album
+  min_recalled: 2
+invariants:
+- INV-01
+notes: 暴走点信息低边界
+product_intent: 暴走 1 张 vs 池里其他暴走景点, 每点信息密度低

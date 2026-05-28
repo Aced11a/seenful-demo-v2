@@ -1,0 +1,13 @@
+id: T1_li_xihu_loop_15km
+source_scenario: T1_li_xihu_loop_15km.yaml
+persona: laoli_youke
+path: L2
+verdict: deferred
+defer_reason: loc+time
+defer_reason_human: GPS + 时间双信号缺失
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: '闭环识别: 起点终点 GPS 接近, 但中间 15km, time 3-4 小时连续'
+product_intent: '环湖闭环: 首尾近 200m 但中间 15km 跨度, DBSCAN 不应把环切成多个簇'

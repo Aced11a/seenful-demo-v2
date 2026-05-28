@@ -1,0 +1,13 @@
+id: T20_li_resort_lazy_3days
+source_scenario: T20_li_resort_lazy_3days.yaml
+persona: laoli_youke
+path: L2
+verdict: deferred
+defer_reason: loc+time
+defer_reason_human: GPS + 时间双信号缺失
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: GPS 三亚 (非用户家城市), hf=false, time T3 多日. 度假成集 vs 家不成集
+product_intent: '度假村 3 天 GPS 不变 + 时间稀疏, vs 高频地点核心区分: 应识别为''度假''(非高频)而非''家''(高频), HR-POST-03 不阻断'

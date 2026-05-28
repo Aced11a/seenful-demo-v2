@@ -1,0 +1,13 @@
+id: CB_13_xiaowang_multi_theme_no_recall
+source_scenario: CB_13_xiaowang_multi_theme_no_recall.yaml
+persona: xiaowang
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-01
+notes: 多主题 + 跨
+product_intent: 单图含万圣节+晚宴+生日多 theme vs 池里无相关, 算法主导 theme 选择

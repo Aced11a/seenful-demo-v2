@@ -1,0 +1,13 @@
+id: CB_08_li_gugong_cross_city_no_backfill
+source_scenario: CB_08_li_gugong_cross_city_no_backfill.yaml
+persona: laoli_youke
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: no_backfill
+invariants:
+- INV-01
+notes: 基础跨城反例
+product_intent: '跨城反例: 新故宫照 vs 池里西湖, 不应误召回'

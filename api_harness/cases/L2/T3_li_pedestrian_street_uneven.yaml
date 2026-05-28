@@ -1,0 +1,13 @@
+id: T3_li_pedestrian_street_uneven
+source_scenario: T3_li_pedestrian_street_uneven.yaml
+persona: laoli_youke
+path: L2
+verdict: deferred
+defer_reason: loc
+defer_reason_human: GPS / 位置信号缺失,本轮无法触发该判定面
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 高楼漂移 + 密度不均
+product_intent: '步行街内密度不均: 网红店 3 张密集 (3 分钟) + 普通段 3 张稀疏, DBSCAN eps 难适配'

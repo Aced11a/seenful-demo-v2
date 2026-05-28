@@ -1,0 +1,14 @@
+id: CB_04_li_th_granularity_xihu_recall
+source_scenario: CB_04_li_th_granularity_xihu_recall.yaml
+persona: laoli_youke
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: create_new_album
+  min_recalled: 2
+invariants:
+- INV-01
+notes: 语义簇兜底测试
+product_intent: 新照感官颗粒 vs 池里粗/中/细 + 一张感官, 字面 Jaccard 低, 语义簇兜底

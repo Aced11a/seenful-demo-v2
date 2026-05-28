@@ -1,0 +1,15 @@
+id: C6_xiaowang_hike_gps_drift
+source_scenario: C6_xiaowang_hike_gps_drift.yaml
+persona: xiaowang
+path: L2
+verdict: deferred
+defer_reason: loc
+defer_reason_human: GPS / 位置信号缺失,本轮无法触发该判定面
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: GPS 飘 ±150m, eps_inner=500m 边界. 看 theme/event 是否兜底
+product_intent: GPS 漂移大但 theme 一致 (hike), 不应因 GPS 散沙就放弃成集

@@ -1,0 +1,15 @@
+id: B1_li_burst_plus_one
+source_scenario: B1_li_burst_plus_one.yaml
+persona: laoli_youke
+path: L2
+verdict: deferred
+defer_reason: loc
+defer_reason_human: GPS / 位置信号缺失,本轮无法触发该判定面
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: 12 张兵马俑应成集 + 1 张加油站应被识别为长尾
+product_intent: 顺路那张加油站不应被错聚到兵马俑集, 应单独沉淀

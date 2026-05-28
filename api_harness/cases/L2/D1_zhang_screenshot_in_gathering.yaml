@@ -1,0 +1,21 @@
+id: D1_zhang_screenshot_in_gathering
+source_scenario: D1_zhang_screenshot_in_gathering.yaml
+persona: laoqi_zhang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - z08
+  - z16
+  - z28
+  - z30
+  - z33
+expected:
+  display_decision:
+  - show_inline_hint
+  - show_mini_album
+invariants:
+- INV-01
+notes: 3 张聚餐 (event=meal) + 2 张 wechat/recipe 截图. 看算法是否过滤截图
+product_intent: 截图应被识别为非记忆型, 不应污染聚餐成集

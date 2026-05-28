@@ -1,0 +1,13 @@
+id: CB_06_zhang_empty_pool_insufficient
+source_scenario: CB_06_zhang_empty_pool_insufficient.yaml
+persona: laoqi_zhang
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-04
+notes: 基础反例
+product_intent: 'cascade 基础反例: 空池无候选 → insufficient_candidates'

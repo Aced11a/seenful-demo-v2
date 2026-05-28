@@ -1,0 +1,13 @@
+id: FP_B4_zhang_outing_walk_cheat
+source_scenario: FP_B4_zhang_outing_walk_cheat.yaml
+persona: laoqi_zhang
+path: L2
+verdict: deferred
+defer_reason: loc
+defer_reason_human: GPS / 位置信号缺失,本轮无法触发该判定面
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 B4. outing 颗粒度太粗 — "全员 outing" 不代表"同一次出游". 5 张跨 5 城绝不该合集. 但 E.1 算法不验"事件单一性", 应假阳成 strong → A3 单独成集. 红线
+product_intent: 5 张跨 5 城市 (上海/杭州/深圳/北京/广州), 但全标 event=outing + activity=walk → E.1 strong 通过, 应假阳成集

@@ -1,0 +1,24 @@
+id: C7_xiaowang_concert_burst
+source_scenario: C7_xiaowang_concert_burst.yaml
+persona: xiaowang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - w01
+  - w02
+  - w03
+  - w04
+  - w05
+  - w06
+  - w07
+  - w08
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: event=performance, 60 秒内 8 张. T1.5 → strong + activity ≥ 2/3?
+product_intent: 1 分钟内 8 张演唱会, T1.5 events∈[3,5] 升 strong 触发 / activity 二次门槛是否过滤

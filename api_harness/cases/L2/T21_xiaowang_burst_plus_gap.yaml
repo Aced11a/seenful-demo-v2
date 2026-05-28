@@ -1,0 +1,13 @@
+id: T21_xiaowang_burst_plus_gap
+source_scenario: T21_xiaowang_burst_plus_gap.yaml
+persona: xiaowang
+path: L2
+verdict: deferred
+defer_reason: time
+defer_reason_human: captured_at / 时间信号缺失
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 'time 维度: 看是否切成 2 集 / 同 1 集'
+product_intent: 'ADR-0011 time T1 链式切分: 5 张连拍紧凑 + 1 张 30min 跳跃, gap > 120min 切边界'

@@ -1,0 +1,13 @@
+id: CB_15_zhang_sensitive_no_recall
+source_scenario: CB_15_zhang_sensitive_no_recall.yaml
+persona: laoqi_zhang
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-02
+notes: 敏感照 PRE 阻断
+product_intent: 敏感照 sensitive_level=medium, HR-PRE 强制 suppress

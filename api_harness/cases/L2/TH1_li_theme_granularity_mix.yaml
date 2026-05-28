@@ -1,0 +1,18 @@
+id: TH1_li_theme_granularity_mix
+source_scenario: TH1_li_theme_granularity_mix.yaml
+persona: laoli_youke
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - l98
+  - l99
+  - l100
+  - l101
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 测语义簇能力 vs 字面 Jaccard 死穴
+product_intent: 同地点不同颗粒度 theme 标签, 字面 Jaccard ≈ 0 但 ADR-0008 语义簇应识别都是'西湖'

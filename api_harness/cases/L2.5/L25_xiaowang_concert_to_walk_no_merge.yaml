@@ -1,0 +1,19 @@
+id: L25_xiaowang_concert_to_walk_no_merge
+source_scenario: L25_xiaowang_concert_to_walk_no_merge.yaml
+persona: xiaowang
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos: []
+  setup_rationale: (原 scenario 无 old_albums → 跑后端默认 → 预期可能 no_candidate_album)
+trigger:
+  photos:
+  - w01
+expected:
+  decision_tier:
+  - ask_user
+  - no_merge
+invariants:
+- INV-01
+notes: 空 album 列表测试
+product_intent: 演唱会照 vs 公园相册 (不同 persona), 主题完全不同, no_merge

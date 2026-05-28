@@ -1,0 +1,13 @@
+id: FP_B7_zhang_location_buffer_edge
+source_scenario: FP_B7_zhang_location_buffer_edge.yaml
+persona: laoqi_zhang
+path: L2
+verdict: deferred
+defer_reason: loc
+defer_reason_human: GPS / 位置信号缺失,本轮无法触发该判定面
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 B7. ADR-0010 eps_outer=1500m, 9.9km 应破 cluster 算 multi (K_outer=2). PCA 形状校正 + transit 降档. 验证算法不把"3 紧簇 + 2 远点"误判为 stretched single-cluster.
+product_intent: 3 张苏州城南公园 + 2 张苏州城北 9.9km 外. 应判 multi-cluster (B 系列) 而非 stretched A1.7 (跨城合并)

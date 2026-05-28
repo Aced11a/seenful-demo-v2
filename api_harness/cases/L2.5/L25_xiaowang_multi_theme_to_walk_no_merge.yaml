@@ -1,0 +1,19 @@
+id: L25_xiaowang_multi_theme_to_walk_no_merge
+source_scenario: L25_xiaowang_multi_theme_to_walk_no_merge.yaml
+persona: xiaowang
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos: []
+  setup_rationale: (原 scenario 无 old_albums → 跑后端默认 → 预期可能 no_candidate_album)
+trigger:
+  photos:
+  - w60
+expected:
+  decision_tier:
+  - ask_user
+  - no_merge
+invariants:
+- INV-01
+notes: 多主题 + 空 album 列表
+product_intent: 单图多 strong theme + 跨场景, 算法主导 theme 选择

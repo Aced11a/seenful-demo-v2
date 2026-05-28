@@ -1,0 +1,24 @@
+id: A6_zhang_plant_growth_30d
+source_scenario: A6_zhang_plant_growth_30d.yaml
+persona: laoqi_zhang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - z01
+  - z05
+  - z10
+  - z15
+  - z20
+  - z25
+  - z29
+  - z32
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: 同盆牡丹从花苞到凋零再到新生, time 跨 30+ 天 + theme 一致 + location 同 (高频). 看算法判断
+product_intent: 跟踪 1 盆牡丹 30 天日记, 应识别为持续记录 (跨长时同主题)

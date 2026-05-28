@@ -1,0 +1,25 @@
+id: L25_li_camping_to_xihu_no_merge
+source_scenario: L25_li_camping_to_xihu_no_merge.yaml
+persona: laoli_youke
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos:
+  - l01
+  - l02
+  - l03
+  - l04
+  - l05
+  - l06
+  setup_rationale: past_xihu_album ← ['l01', 'l02', 'l03', 'l04', 'l05', 'l06']
+trigger:
+  photos:
+  - l93
+expected:
+  decision_tier:
+  - ask_user
+  - no_merge
+invariants:
+- INV-01
+notes: 跨主题反例
+product_intent: 露营 vs 西湖游, 跨主题应 no_merge

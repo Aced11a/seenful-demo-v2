@@ -1,0 +1,15 @@
+id: A1_zhang_insurance_burst
+source_scenario: A1_zhang_insurance_burst.yaml
+persona: laoqi_zhang
+path: L2
+verdict: deferred
+defer_reason: time
+defer_reason_human: captured_at / 时间信号缺失
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: '3 张白兰花特写, 同 30 秒内. 期望: 不被识别为强信号成集'
+product_intent: 3 张同物体不应被错误升 strong, 算法应识别为保险拍而非真 burst

@@ -1,0 +1,13 @@
+id: T4_xiaowang_hike_sparse_dense
+source_scenario: T4_xiaowang_hike_sparse_dense.yaml
+persona: xiaowang
+path: L2
+verdict: deferred
+defer_reason: loc+time
+defer_reason_human: GPS + 时间双信号缺失
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: ADR-0011 time T1 events∈[3,5] 边界, 前疏后密
+product_intent: 徒步登山前段稀疏 (2 张) + 山顶密集 (2 张), 时间密度前后差异极大, 前段不应被 sparse 踢掉

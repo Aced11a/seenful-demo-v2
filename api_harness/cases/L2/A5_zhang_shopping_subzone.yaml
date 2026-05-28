@@ -1,0 +1,15 @@
+id: A5_zhang_shopping_subzone
+source_scenario: A5_zhang_shopping_subzone.yaml
+persona: laoqi_zhang
+path: L2
+verdict: deferred
+defer_reason: loc
+defer_reason_human: GPS / 位置信号缺失,本轮无法触发该判定面
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: 同一商场 1F-3F-1F-4F, theme 各不同但 GPS 同. 看 location 是否能拢起来
+product_intent: 商场内不同子区域反复来回, 应被聚成一集 (子区域内不应散沙)

@@ -1,0 +1,25 @@
+id: L25_li_th_granularity_细颗粒_to_xihu
+source_scenario: L25_li_th_granularity_细颗粒_to_xihu.yaml
+persona: laoli_youke
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos:
+  - l01
+  - l02
+  - l03
+  - l04
+  - l05
+  - l06
+  setup_rationale: past_xihu_album ← ['l01', 'l02', 'l03', 'l04', 'l05', 'l06']
+trigger:
+  photos:
+  - l99
+expected:
+  decision_tier:
+  - auto_merge
+  - ask_user
+invariants:
+- INV-01
+notes: 语义簇 vs 字面 Jaccard
+product_intent: 细颗粒标签 [断桥, 行人, 风筝] 字面 Jaccard=0 但 ADR-0008 语义簇识别 → 应 auto_merge

@@ -1,0 +1,15 @@
+id: CB_07_li_xihu_recall
+source_scenario: CB_07_li_xihu_recall.yaml
+persona: laoli_youke
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: create_new_album
+invariants:
+- INV-04
+- INV-05
+- INV-06
+notes: 基础正例 + 跨颗粒度
+product_intent: 'cascade 跨颗粒度: 新中颗粒 vs 池里粗+细+感官混合, 应召回'

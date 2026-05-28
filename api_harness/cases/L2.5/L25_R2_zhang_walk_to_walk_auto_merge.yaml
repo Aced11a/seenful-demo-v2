@@ -1,0 +1,24 @@
+id: L25_R2_zhang_walk_to_walk_auto_merge
+source_scenario: L25_R2_zhang_walk_to_walk_auto_merge.yaml
+persona: laoqi_zhang
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos:
+  - z09
+  - z14
+  - z17
+  - z22
+  - z26
+  setup_rationale: weekly_park_walk_album ← ['z09', 'z14', 'z17', 'z22', 'z26']
+trigger:
+  photos:
+  - z07
+expected:
+  decision_tier:
+  - auto_merge
+  - ask_user
+invariants:
+- INV-01
+notes: 基础正例
+product_intent: 同地点同主题, 基础正例应 auto_merge

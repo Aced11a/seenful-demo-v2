@@ -1,0 +1,19 @@
+id: ANC1_li_anchor_multi_granularity
+source_scenario: ANC1_li_anchor_multi_granularity.yaml
+persona: laoli_youke
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - l102
+  - l103
+  - l104
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: anchor 多颗粒强叠加, 看真值表 A 系 (anchor 不主导但加强)
+product_intent: meaning_anchors 4+ 个抽象 + main_subjects 4+ 个具体, ADR-0014 双层 anchor 边界

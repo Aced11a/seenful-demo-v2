@@ -4,10 +4,11 @@
     "show_mini_album": ["show_mini_album"],
     "create_mini_album": ["show_mini_album"],
     "suppress": ["suppress"],
-    "ask_user": [],
-    "no_merge": [],
-    "insufficient": [],
-    "create_new_album": []
+    "show_inline_hint": ["show_inline_hint"],
+    "ask_user": ["ask_user"],
+    "no_merge": ["no_merge"],
+    "insufficient": ["insufficient"],
+    "create_new_album": ["create_new_album"]
   },
   "decision_tier": {
     "auto_merge": ["auto_merge"],

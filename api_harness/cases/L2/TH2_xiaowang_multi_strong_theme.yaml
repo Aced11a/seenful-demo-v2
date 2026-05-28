@@ -1,0 +1,17 @@
+id: TH2_xiaowang_multi_strong_theme
+source_scenario: TH2_xiaowang_multi_strong_theme.yaml
+persona: xiaowang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - w60
+  - w61
+  - w62
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 多 strong theme 共存, 算法选哪个主导
+product_intent: 单图 theme 多元素 (≥5 标签), ADR-0013 双层判定能否处理 'theme 多焦点'

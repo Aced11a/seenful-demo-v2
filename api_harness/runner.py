@@ -151,16 +151,20 @@ def _extract_actual(body: dict[str, Any]) -> dict[str, Any]:
 # ── 比对(§6)──────────────────────────────────────────────────────
 
 def _compare_display_decision(expected: dict, actual: dict, code_map: dict) -> tuple[str, str]:
+    """expected.display_decision 支持单值 或 多值 list(acceptable 兜底已合并)。"""
     exp = expected.get("display_decision")
     if exp is None:
         return "unmapped", "case 未给 display_decision 期望"
+    exp_list = exp if isinstance(exp, list) else [exp]
     actual_code = actual.get("displayDecisionCode")
-    acceptable = code_map.get("display_decision", {}).get(exp, [])
-    if not acceptable:
-        return "unmapped", f"期望 '{exp}' 在 code_map 尚无后端码映射;实际 displayDecisionCode={actual_code!r} → 待补映射后重判"
-    if actual_code in acceptable:
-        return "match", f"display_decision '{exp}' == {actual_code!r}"
-    return "mismatch", f"期望 '{exp}'→{acceptable},实际 {actual_code!r}"
+    accept_codes: set = set()
+    for e in exp_list:
+        accept_codes.update(code_map.get("display_decision", {}).get(e, []))
+    if not accept_codes:
+        return "unmapped", f"期望 {exp_list} 在 code_map 尚无后端码映射;实际 displayDecisionCode={actual_code!r} → 待补映射后重判"
+    if actual_code in accept_codes:
+        return "match", f"display_decision ∈ {exp_list} 命中 {actual_code!r}"
+    return "mismatch", f"期望 {exp_list}→{sorted(accept_codes)},实际 {actual_code!r}"
 
 
 def _compare_decision_tier(expected: dict, actual: dict, code_map: dict) -> tuple[str, str]:

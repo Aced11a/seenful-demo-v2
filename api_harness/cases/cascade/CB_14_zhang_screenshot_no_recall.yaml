@@ -1,0 +1,13 @@
+id: CB_14_zhang_screenshot_no_recall
+source_scenario: CB_14_zhang_screenshot_no_recall.yaml
+persona: laoqi_zhang
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: create_new_album
+invariants:
+- INV-01
+notes: 干扰反例
+product_intent: 干扰截图 vs 池, 主题完全无关, no_backfill

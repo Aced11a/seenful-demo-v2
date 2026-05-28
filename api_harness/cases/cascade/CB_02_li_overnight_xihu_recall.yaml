@@ -1,0 +1,15 @@
+id: CB_02_li_overnight_xihu_recall
+source_scenario: CB_02_li_overnight_xihu_recall.yaml
+persona: laoli_youke
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: create_new_album
+  min_recalled: 2
+invariants:
+- INV-04
+- INV-05
+notes: 跨业务日召回边界
+product_intent: 跨业务日单张 vs 沉淀池同主题, 应召回

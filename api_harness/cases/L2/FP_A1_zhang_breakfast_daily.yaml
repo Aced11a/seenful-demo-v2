@@ -1,0 +1,21 @@
+id: FP_A1_zhang_breakfast_daily
+source_scenario: FP_A1_zhang_breakfast_daily.yaml
+persona: laoqi_zhang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - fz01
+  - fz02
+  - fz03
+  - fz04
+  - fz05
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+- INV-03
+notes: 5 天连续早餐店, location strong (同 GPS hf=true) + event strong (meal+meal) + theme strong (breakfast 系). 期望 HR-BANDS-01 降档 location → final ≤
+  medium, 不进 strong 单独成集. 若现行仍 strong 成集 = 暴露 HFP 防御不足 (docs/28 A1)
+product_intent: 同 GPS 同 event=meal 同主题但是天天去的流水账, **不应**成集 (红线

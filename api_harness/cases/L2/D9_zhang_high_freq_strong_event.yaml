@@ -1,0 +1,11 @@
+id: D9_zhang_high_freq_strong_event
+source_scenario: D9_zhang_high_freq_strong_event.yaml
+persona: laoqi_zhang
+path: L2
+verdict: deferred
+defer_reason: hfp
+defer_reason_human: 高频地点信号缺失
+expected:
+  display_decision: show_mini_album
+notes: 高频地点 + event=celebration strong. HR-POST-03 边界, 真生日应成集
+product_intent: 家 (高频) 办生日 (强 event), HR-POST-03 不应过度抑制 → 应该成集

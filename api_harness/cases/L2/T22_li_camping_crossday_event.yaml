@@ -1,0 +1,20 @@
+id: T22_li_camping_crossday_event
+source_scenario: T22_li_camping_crossday_event.yaml
+persona: laoli_youke
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - l92
+  - l93
+  - l94
+  - l95
+  - l96
+  - l97
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 跨 2 个 04:00, 连续时间, theme 一致 (camping)
+product_intent: 跨多个 04:00 业务日同事件 (4/26 12:00 - 4/27 18:00 连续露营), ADR-0011 T2/T3 多日识别

@@ -1,0 +1,15 @@
+id: B6_li_airport_farewell
+source_scenario: B6_li_airport_farewell.yaml
+persona: laoli_youke
+path: L2
+verdict: deferred
+defer_reason: loc
+defer_reason_human: GPS / 位置信号缺失,本轮无法触发该判定面
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: event=gathering+outing+daily_record 混合, theme 跨 airport/metro/home
+product_intent: 机场 5 + 地铁 3, 同一段送行行程应被识别 (即使分两个 location)

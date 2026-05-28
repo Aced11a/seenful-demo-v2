@@ -1,0 +1,13 @@
+id: CB_10_xiaowang_checkin_no_backfill
+source_scenario: CB_10_xiaowang_checkin_no_backfill.yaml
+persona: xiaowang
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-01
+notes: 跨城网红打卡
+product_intent: 网红打卡单张 vs 池里其他网红点, 每点 1 张, 跨城

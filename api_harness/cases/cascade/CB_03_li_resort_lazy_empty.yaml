@@ -1,0 +1,13 @@
+id: CB_03_li_resort_lazy_empty
+source_scenario: CB_03_li_resort_lazy_empty.yaml
+persona: laoli_youke
+path: cascade
+verdict: deferred
+defer_reason: cascade_pending
+defer_reason_human: 后端 cascade 路径疑似缺失(2026-05-28 探针),先搁置
+expected:
+  decision_tier: insufficient_candidates
+invariants:
+- INV-04
+notes: 度假村空池
+product_intent: 度假村单张 vs 空池 → insufficient

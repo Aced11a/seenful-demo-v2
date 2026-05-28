@@ -1,0 +1,25 @@
+id: L25_R1_zhang_balcony_to_walk_no_merge
+source_scenario: L25_R1_zhang_balcony_to_walk_no_merge.yaml
+persona: laoqi_zhang
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos:
+  - z07
+  - z09
+  - z14
+  - z17
+  - z22
+  - z26
+  setup_rationale: weekly_park_walk_album ← ['z07', 'z09', 'z14', 'z17', 'z22', 'z26']
+trigger:
+  photos:
+  - z01
+expected:
+  decision_tier:
+  - ask_user
+  - no_merge
+invariants:
+- INV-01
+notes: 基础跨场景反例
+product_intent: 阳台花 vs 公园相册 主题不同地点不同, 基础反例 no_merge

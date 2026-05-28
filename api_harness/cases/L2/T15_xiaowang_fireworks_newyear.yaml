@@ -1,0 +1,22 @@
+id: T15_xiaowang_fireworks_newyear
+source_scenario: T15_xiaowang_fireworks_newyear.yaml
+persona: xiaowang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - w41
+  - w42
+  - w43
+  - w44
+  - w45
+  - w46
+  - w47
+  - w48
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: time 极密 (T1.5 events>5) + 跨 00:00 (但 < 04:00 同业务日)
+product_intent: '跨年烟花: 10 分钟内 8 张同主题, 跨 04:00 业务日 vs 跨自然日 (00:00) 不同语义, ADR-0011 自然日归属'

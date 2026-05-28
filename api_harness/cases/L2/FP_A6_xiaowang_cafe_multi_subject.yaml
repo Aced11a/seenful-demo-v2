@@ -1,0 +1,20 @@
+id: FP_A6_xiaowang_cafe_multi_subject
+source_scenario: FP_A6_xiaowang_cafe_multi_subject.yaml
+persona: xiaowang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - w34
+  - w35
+  - w36
+  - w37
+  - w38
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 A6 + 已有 C8_xiaowang_cafe_multi_subject 同源. location strong + time T1.5 紧簇 + event 散 + theme 散 → 真值表 D 系列 (location 单 strong) medium.
+  ADR-0022 TH.0 修了 theme 多并列, event 多并列还没. 边界 case.
+product_intent: 用户咖啡馆待 4h, 同 GPS 同时间窗内拍工作/合影/餐. 语义混杂应按 event/theme 拆多本小集, 不应合 1 本

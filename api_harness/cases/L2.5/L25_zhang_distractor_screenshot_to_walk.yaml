@@ -1,0 +1,25 @@
+id: L25_zhang_distractor_screenshot_to_walk
+source_scenario: L25_zhang_distractor_screenshot_to_walk.yaml
+persona: laoqi_zhang
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos:
+  - z07
+  - z09
+  - z14
+  - z17
+  - z22
+  - z26
+  setup_rationale: weekly_park_walk_album ← ['z07', 'z09', 'z14', 'z17', 'z22', 'z26']
+trigger:
+  photos:
+  - z30
+expected:
+  decision_tier:
+  - auto_merge
+  - ask_user
+invariants:
+- INV-01
+notes: 干扰反例
+product_intent: 截图非记忆型干扰, 应 no_merge

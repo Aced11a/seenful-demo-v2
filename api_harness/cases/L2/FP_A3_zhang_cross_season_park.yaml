@@ -1,0 +1,13 @@
+id: FP_A3_zhang_cross_season_park
+source_scenario: FP_A3_zhang_cross_season_park.yaml
+persona: laoqi_zhang
+path: L2
+verdict: deferred
+defer_reason: time
+defer_reason_human: captured_at / 时间信号缺失
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: docs/28 A3. 现行 ADR-0011 time T3 cap medium, 但 location strong + theme strong 可能多维组合成集. 跨 4 周成单本相册 = 跨季同地流水账假阳 (设计缺口, OQ).
+product_intent: 同一公园跨 4 周 8 张 (周期散步), location 同 + time T3 多日 + theme 一致. 应识别为"周期记录"非单事件相册 (语义颗粒度问题)

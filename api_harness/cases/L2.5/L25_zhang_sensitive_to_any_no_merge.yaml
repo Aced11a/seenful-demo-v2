@@ -1,0 +1,25 @@
+id: L25_zhang_sensitive_to_any_no_merge
+source_scenario: L25_zhang_sensitive_to_any_no_merge.yaml
+persona: laoqi_zhang
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos:
+  - z07
+  - z09
+  - z14
+  - z17
+  - z22
+  - z26
+  setup_rationale: weekly_park_walk_album ← ['z07', 'z09', 'z14', 'z17', 'z22', 'z26']
+trigger:
+  photos:
+  - z34
+expected:
+  decision_tier:
+  - ask_user
+  - no_merge
+invariants:
+- INV-02
+notes: '红线 #6 基础'
+product_intent: 敏感照片 sensitive_level=medium, 即使其他维度都强, 永远 no_merge (HRG-POST-01)

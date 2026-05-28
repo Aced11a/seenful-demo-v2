@@ -1,0 +1,22 @@
+id: B5_li_business_plus_travel
+source_scenario: B5_li_business_plus_travel.yaml
+persona: laoli_youke
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - l07
+  - l08
+  - l09
+  - l10
+  - l11
+  - l12
+expected:
+  display_decision:
+  - suppress
+  - show_inline_hint
+invariants:
+- INV-01
+notes: 3 张 work + 3 张 outing, event 分布异质
+product_intent: 工作 + 旅游 mix, 不应混成单一相册 (event 维度需要拆)

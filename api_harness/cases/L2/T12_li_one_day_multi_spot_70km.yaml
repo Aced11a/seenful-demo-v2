@@ -1,0 +1,13 @@
+id: T12_li_one_day_multi_spot_70km
+source_scenario: T12_li_one_day_multi_spot_70km.yaml
+persona: laoli_youke
+path: L2
+verdict: deferred
+defer_reason: loc+time
+defer_reason_human: GPS + 时间双信号缺失
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 跨 70km, 点间长途移动. 嵌套容器问题, 现 demo 没实现父 POI
+product_intent: '分散多点一日游: 3 个景点跨 70km, time 跨 10 小时, 应识别为同一行程或拆 3 集'

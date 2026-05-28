@@ -1,0 +1,17 @@
+id: D2_zhang_hospital_sensitive
+source_scenario: D2_zhang_hospital_sensitive.yaml
+persona: laoqi_zhang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - z34
+  - z35
+  - z37
+expected:
+  display_decision: suppress
+invariants:
+- INV-02
+notes: 'HR-PRE-02 敏感照片强制 suppress (红线 #6)'
+product_intent: 敏感照片 sensitive_level≥medium, 即使其他维度都强, 也强 suppress

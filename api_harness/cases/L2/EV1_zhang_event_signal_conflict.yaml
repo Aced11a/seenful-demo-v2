@@ -1,0 +1,19 @@
+id: EV1_zhang_event_signal_conflict
+source_scenario: EV1_zhang_event_signal_conflict.yaml
+persona: laoqi_zhang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - z44
+  - z45
+  - z46
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: event 单值 celebration 一致, activity 和 scene 也一致但不是 celebration. 多信号冲突
+product_intent: event=celebration + activity=meal + scene=restaurant 多维冲突, ADR-0012 primary_share 怎么判

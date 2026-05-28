@@ -1,0 +1,25 @@
+id: L25_R3_li_xihu_new_to_xihu_auto
+source_scenario: L25_R3_li_xihu_new_to_xihu_auto.yaml
+persona: laoli_youke
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos:
+  - l01
+  - l02
+  - l03
+  - l04
+  - l05
+  - l06
+  setup_rationale: past_xihu_album ← ['l01', 'l02', 'l03', 'l04', 'l05', 'l06']
+trigger:
+  photos:
+  - l98
+expected:
+  decision_tier:
+  - auto_merge
+  - ask_user
+invariants:
+- INV-01
+notes: 基础正例 + 测语义簇
+product_intent: 新西湖照 vs 西湖相册, 同地点同主题, 应 auto_merge (theme 颗粒度粗也能识别)

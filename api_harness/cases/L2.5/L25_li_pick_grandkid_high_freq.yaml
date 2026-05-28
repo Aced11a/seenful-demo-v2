@@ -1,0 +1,15 @@
+id: L25_li_pick_grandkid_high_freq
+source_scenario: L25_li_pick_grandkid_high_freq.yaml
+persona: laoli_youke
+path: L2.5
+verdict: deferred
+defer_reason: loc
+defer_reason_human: GPS / 位置信号缺失,本轮无法触发该判定面
+expected:
+  decision_tier:
+  - auto_merge
+  - ask_user
+invariants:
+- INV-03
+notes: 高频地点降档 ask_user 或不降
+product_intent: 高频地点 + 日常 routine, HR-POST-03 边界

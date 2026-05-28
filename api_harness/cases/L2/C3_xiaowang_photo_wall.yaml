@@ -1,0 +1,20 @@
+id: C3_xiaowang_photo_wall
+source_scenario: C3_xiaowang_photo_wall.yaml
+persona: xiaowang
+path: L2
+verdict: runnable
+setup: {}
+trigger:
+  photos:
+  - w27
+  - w28
+  - w29
+  - w30
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: 同 GPS + 30 秒 + theme 一致 (pink wall), people 多次切换
+product_intent: 同一面墙不同人打卡, 应识别为集体打卡而非误聚

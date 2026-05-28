@@ -1,0 +1,13 @@
+id: T19_li_marathon_10_spots
+source_scenario: T19_li_marathon_10_spots.yaml
+persona: laoli_youke
+path: L2
+verdict: deferred
+defer_reason: loc+time
+defer_reason_human: GPS + 时间双信号缺失
+expected:
+  display_decision: show_mini_album
+invariants:
+- INV-01
+notes: 高频切换防过度切分, theme=city_tour 一致
+product_intent: 一天 10 个景点高频切换, 不应被切成 10 个碎集, 应识别为 city tour 整体

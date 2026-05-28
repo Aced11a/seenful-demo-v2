@@ -1,0 +1,15 @@
+id: L25_R4_li_gugong_to_xihu_no_merge
+source_scenario: L25_R4_li_gugong_to_xihu_no_merge.yaml
+persona: laoli_youke
+path: L2.5
+verdict: deferred
+defer_reason: loc
+defer_reason_human: GPS / 位置信号缺失,本轮无法触发该判定面
+expected:
+  decision_tier:
+  - ask_user
+  - no_merge
+invariants:
+- INV-01
+notes: 基础跨城反例
+product_intent: '跨城反例: 故宫 (北京) vs 西湖 (杭州), 即使主题都 ancient 也应 no_merge'

@@ -1,0 +1,15 @@
+id: B3_li_one_day_long_break
+source_scenario: B3_li_one_day_long_break.yaml
+persona: laoli_youke
+path: L2
+verdict: deferred
+defer_reason: time
+defer_reason_human: captured_at / 时间信号缺失
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: 9:00 → 13:00 餐 → 17:00, 时间链式切分 gap=120min 边界
+product_intent: 2-3 小时午饭间断不应切集, 同一天 outing 应整体成集

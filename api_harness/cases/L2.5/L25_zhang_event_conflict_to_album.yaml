@@ -1,0 +1,23 @@
+id: L25_zhang_event_conflict_to_album
+source_scenario: L25_zhang_event_conflict_to_album.yaml
+persona: laoqi_zhang
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos:
+  - z38
+  - z39
+  - z40
+  - z41
+  - z42
+  - z43
+  setup_rationale: granddaughter_album ← ['z38', 'z39', 'z40', 'z41', 'z42', 'z43']
+trigger:
+  photos:
+  - z44
+expected:
+  decision_tier: ask_user
+invariants:
+- INV-01
+notes: 多信号冲突边界
+product_intent: event=celebration + activity=meal + scene=restaurant 多信号冲突时, primary event 主导决策

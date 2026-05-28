@@ -1,0 +1,25 @@
+id: L25_li_multi_anchor_to_xihu
+source_scenario: L25_li_multi_anchor_to_xihu.yaml
+persona: laoli_youke
+path: L2.5
+verdict: runnable
+setup:
+  seed_photos:
+  - l01
+  - l02
+  - l03
+  - l04
+  - l05
+  - l06
+  setup_rationale: past_xihu_album ← ['l01', 'l02', 'l03', 'l04', 'l05', 'l06']
+trigger:
+  photos:
+  - l102
+expected:
+  decision_tier:
+  - auto_merge
+  - ask_user
+invariants:
+- INV-01
+notes: anchor 多颗粒边界, 同地 GPS
+product_intent: 新照含 4 个 meaning_anchor + 5 个 object, 同地点应 auto_merge / ask_user

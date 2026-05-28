@@ -1,0 +1,15 @@
+id: A2_zhang_weekly_park_walk
+source_scenario: A2_zhang_weekly_park_walk.yaml
+persona: laoqi_zhang
+path: L2
+verdict: deferred
+defer_reason: time
+defer_reason_human: captured_at / 时间信号缺失
+expected:
+  display_decision:
+  - show_mini_album
+  - show_inline_hint
+invariants:
+- INV-01
+notes: 跨 4 周 8 张, time T3 多日 + theme 一致. 看算法是否拢成一集 vs 散沙
+product_intent: 跨多周同地同主题不应强行聚一集, 应是周期记录
