@@ -325,6 +325,8 @@ api_harness/
 - ✅ **枚举码值(首跑实测,见 §1 实测码值)**:`status` PROCESSING→FINISHED(删后 NOT_FOUND);`route=L2`;`displayDecisionCode=show_mini_album`;`finalResultCode` init(0)→create_mini_album(2);`nextFlowCode=l2_5`;`decisionRemark=policy_final_A2`(真值表 pattern 在此,`truthTablePattern` 字段空);包装 `{data:{...}}`。
 - ⏳ **剩余待观测码值**:L2.5/cascade 的 `decisionTierCode` / `associationStrength`(int→band) / auto_merge·ask_user·no_merge 对应码;`displayDecisionCode` 全集。下一步跑 L2.5/cascade 用例时补。
 - ⏳ **轮询参数**:首跑 interval=3s / timeout=120s 够用(FINISHED 几秒内到)。后续按实测收敛默认值。
+- 🔬 **后端异步索引窗口(2026-05-28 实证)**:setup 拿到 album_id 后立即 trigger 会 no_candidate_album;同流程隔 5s 重跑变 auto_merge → runner 在 setup 后加 `_SETUP_INDEX_DELAY_S=5.0`(env `SEENFUL_SETUP_INDEX_DELAY` 覆盖)。
+- 🔍 **cascade 路径疑似缺失(2026-05-28 实证待后端核实)**:池中每张孤立 submit 永远 no_candidate_album;但同一组照片 batch 提交可成集,trigger 再来则 auto_merge(走 L2.5)。即:**后端目前实现可能只有 L2.5(加入已成集老相册),没有真正的 cascade(召回散张沉淀组团)**。按"产品意图原则",cascade case 期望保留,mismatch 暴露此 gap。
 
 ---
 
@@ -338,6 +340,7 @@ api_harness/
 
 ---
 
+*v0.10 · 2026-05-28(同日实证) · **两个核心发现**:① 后端异步索引新建 album 有窗口期(立即 trigger 会 no_candidate_album),runner 在 setup 后加 5s sleep,L25_R3 从 mismatch 变 match;② cascade 路径疑似缺失——单张池提交永远 no_candidate_album,后端实现可能只有 L2.5。runner.cascade setup 改为单张分批 submit(保持 cascade 语义);CB_05 期望保留,mismatch 暴露后端 gap。dashboard 升级:白底大字、verdict 筛选栏、归因/标签折叠、#N 编号、scene/activity/event/anchor 全 chip 化*
 *v0.9 · 2026-05-28(同日校准)· **API#3 行为校准**:airtight 实测 `del(其他id)` 不动 X、`del(X)` 才删 X → 默认 **per-mockBizId 级联**;Ace 与后端再确认"可清数据库,后端或有额外配置"——两种模式并存。§1/§3 改回 per-id 账本 + teardown 逐个删(在两种模式下都正确);v0.8 的「整库 wipe」措辞作废。CLAUDE 第5条 / TEST_PLAN §5/§7 同步;client.py / runner.py 同改*
 *v0.8 · 2026-05-28 · **【作废,见 v0.9】**API#3 行为更正(误判为整库清空)*
 *v0.7 · 2026-05-27 · **Step 1 跑通**:鉴权全解(关键 `x-user-id: 16069`)、`{data}` 包装、删除级联实测确认(隔离干净)、首跑码值落 §1 实测码值表;§9/§10 相应更新*

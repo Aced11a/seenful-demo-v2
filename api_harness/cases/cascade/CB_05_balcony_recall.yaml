@@ -16,7 +16,8 @@ setup:
     z03 closeup/blur/retake + 白兰花(同主题, 质量差是次要)
     z06 potted_plant/geranium/terracotta_pot + 天竺葵盆(同主题)
     z08 meal/restaurant/friend + 老同学聚餐(干扰项, 不应召回)
-    单张分批上传 → 期望每张孤立不成集(无同批同主题伙伴), 落库后台子状态就是 4 张沉淀池.
+    runner.py 实现:**每张单独 submit + 单独 mockBizId**(模拟孤立沉淀,不可 batch);
+    每张提交后期望孤立 no_merge(单张无候选,后端会返 no_candidate_album,这是预期).
 trigger:
   photos: [z32]                       # 单张触发: bud/second_round/hope_again/flower_pot/balcony
 expected:
@@ -27,3 +28,9 @@ notes: |
   cascade 基础正例. 若后端召回了 z08(餐厅) → 主题精度问题 (mismatch).
   若召回 <3 张 → 后端 cascade 阈值高 / 主题相似度门槛严, 记 mismatch.
   若 z01/z03/z06 都没召回 → 后端 cascade 无效或主题维度无信号, 记 mismatch.
+
+  ⚠ 2026-05-28 探针发现(待和后端核实):后端目前**可能没真正的 cascade 沉淀回扫路径**.
+  - 单张提交永远拿 no_candidate_album(单张无候选 album).
+  - 但 z01/z03/z06 batch 提交可成集 balcony album, trigger z32 单张则能 auto_merge 进去(走 L2.5).
+  - 即:后端有 L2.5(加入已成集老相册), 没有 cascade(召回散张沉淀组团).
+  按"产品意图原则", 期望不动, mismatch 暴露的就是后端 cascade 路径缺失这个 gap.

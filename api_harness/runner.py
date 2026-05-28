@@ -19,13 +19,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+#: setup 阶段拿到 album_id 后到 trigger 提交之间的保守延迟(秒)。
+#: 实证(2026-05-28):后端异步索引新建 album 有窗口期,立即 trigger 会拿到 no_candidate_album。
+#: 探针重跑同流程偶尔成功,加 sleep 可降低这类竞态(类 P2 全量跑前应实测最小值)。
+_SETUP_INDEX_DELAY_S = float(os.environ.get("SEENFUL_SETUP_INDEX_DELAY", "5.0"))
 
 #: 防御性脱敏:requests 的 SSLError 等异常 str 会带完整 URL(含 sign 等 query 鉴权值)。
 #: 落盘前一律 mask。CLAUDE 第3条:鉴权值绝不进任何受版控文件,results/ 也已 gitignore,
@@ -247,16 +254,25 @@ def run_case(case: dict, *, theme_map, sample, code_map, do_teardown: bool = Tru
                 res.verdict = "BLOCKED"
                 res.detail = f"前置建集失败:seed {seeds} 未成集(无 miniAlbumId)→ 非 mismatch"
                 return res
+            # 等后端把新 album 索引到候选库(异步,实证有窗口期)
+            time.sleep(_SETUP_INDEX_DELAY_S)
         elif path == "cascade":
             pool_ids = setup.get("pool_photos") or []
             if pool_ids:
+                # cascade 语义:池中每张"单独孤立沉淀",不应 batch(batch 会让后端走 L2 主路径成集)。
+                # 每张单独 submit + 单独 mockBizId 落库,保留"未成集沉淀照片"的原意。
                 pool_photos, pool_tags = _photos_and_tags(persona, pool_ids, theme_map, sample, missing)
                 res.raw["pool_tags"] = pool_tags                            # ← 输入侧标签可视化
-                sub = client.submit(pool_photos)
-                if sub.mock_biz_id is not None:
-                    biz_ids.append(sub.mock_biz_id)
-                client.poll_result(sub.mock_biz_id)
-                res.raw["setup"] = {"pool_submit": sub.raw, "mockBizId": sub.mock_biz_id}
+                pool_subs: list[dict] = []
+                for one_pid_payload in pool_photos:                          # 一张张提交
+                    sub = client.submit([one_pid_payload])
+                    if sub.mock_biz_id is not None:
+                        biz_ids.append(sub.mock_biz_id)
+                    body = client._unwrap(client.poll_result(sub.mock_biz_id))
+                    pool_subs.append({"mockBizId": sub.mock_biz_id, "raw": body})
+                res.raw["setup"] = {"pool_subs": pool_subs}
+                # 等后端把池中沉淀照片索引到检索库(实证同 L2.5)
+                time.sleep(_SETUP_INDEX_DELAY_S)
 
         # ── trigger ──
         trig_ids = (case.get("trigger") or {}).get("photos") or []

@@ -63,33 +63,46 @@ def _render_filter_bar(counts: dict[str, int]) -> str:
     return f'<div class="filter-bar"><strong>筛选:</strong> {" ".join(btns)}</div>'
 
 
+def _chip(category: str, value: str) -> str:
+    """统一 chip 样式;category ∈ {ai, obj, scene, act, event, anchor, sens}。"""
+    return f'<span class="t t-{category}">{html.escape(str(value))}</span>'
+
+
+def _chip_group(label: str, category: str, values: list[str]) -> str:
+    """一组带前缀 label 的 chip;values 为空则不渲染。"""
+    if not values:
+        return ""
+    chips = " ".join(_chip(category, v) for v in values)
+    return f'<span class="tag-group"><span class="tg-lbl">{label}</span>{chips}</span>'
+
+
 def _render_tags_summary(label: str, tags: list[dict]) -> str:
-    """折叠区里的标签详情。"""
+    """折叠区里的标签详情。所有维度都用 chip 高亮(蓝主题 / 紫主体 / 绿场景 / 橙活动 / 粉事件 / 青锚点 / 红敏感)。"""
     if not tags:
         return ""
     items = []
     for t in tags:
         parts = [f'<strong class="pid">{html.escape(str(t.get("id", "")))}</strong>']
-        if t.get("ai_scene_tags"):
-            tags_html = " ".join(f'<span class="t t-ai">{html.escape(str(x))}</span>' for x in t["ai_scene_tags"])
-            parts.append(f'<span class="tag-group"><span class="tg-lbl">ai_scene</span>{tags_html}</span>')
-        if t.get("salient_objects"):
-            objs_html = " ".join(f'<span class="t t-obj">{html.escape(str(x))}</span>' for x in t["salient_objects"])
-            parts.append(f'<span class="tag-group"><span class="tg-lbl">subj</span>{objs_html}</span>')
-        meta_bits = []
-        for k in ("scene", "activity", "event_hint"):
-            v = t.get(k)
-            if v and v not in ("unknown", "daily_record"):
-                meta_bits.append(f'{k}=<em>{html.escape(str(v))}</em>')
-        if t.get("sensitive", "none") != "none":
-            meta_bits.append(f'<span class="sens">sensitive={html.escape(str(t["sensitive"]))}</span>')
+        parts.append(_chip_group("ai_scene", "ai", t.get("ai_scene_tags") or []))
+        parts.append(_chip_group("subj", "obj", t.get("salient_objects") or []))
+        # scene / activity / event_hint:单值,unknown / daily_record 不显
+        scene = t.get("scene")
+        if scene and scene != "unknown":
+            parts.append(_chip_group("scene", "scene", [scene]))
+        activity = t.get("activity")
+        if activity and activity != "unknown":
+            parts.append(_chip_group("activity", "act", [activity]))
+        event = t.get("event_hint")
+        if event and event != "daily_record":
+            parts.append(_chip_group("event", "event", [event]))
+        # anchors:多值,每个一片
         if t.get("anchors"):
-            meta_bits.append(f'anchors=[{html.escape(", ".join(t["anchors"]))}]')
-        if meta_bits:
-            parts.append(f'<span class="tag-meta">{" · ".join(meta_bits)}</span>')
+            parts.append(_chip_group("anchors", "anchor", t["anchors"]))
+        if t.get("sensitive", "none") != "none":
+            parts.append(_chip_group("sensitive", "sens", [t["sensitive"]]))
         if t.get("narrative"):
             parts.append(f'<span class="narr">「{html.escape(t["narrative"])}」</span>')
-        items.append(f'<li>{" ".join(parts)}</li>')
+        items.append(f'<li>{" ".join(p for p in parts if p)}</li>')
     summary_hint = f"{len(tags)} 张"
     # 摘出 ai_scene_tags 的前 3-4 个 token 作 summary 速览
     preview_tokens: list[str] = []
@@ -144,7 +157,8 @@ def _render_reasons(actual: dict) -> str:
             f'<div class="reasons-body">{"".join(rows)}</div></details>')
 
 
-def _render_case(r: dict) -> str:
+def _render_case(r: dict, idx: int) -> str:
+    """idx = 1-based 全局序号(跨 path 连续,便于沟通"#7 那条 mismatch")。"""
     v = r.get("verdict", "?")
     color, _ = _VERDICT_COLOR.get(v, ("#334155", "?"))
     expected = r.get("expected") or {}
@@ -198,8 +212,9 @@ def _render_case(r: dict) -> str:
         inputs_html += _render_tags_summary("🎯 trigger(本次触发上传)", trigger_tags)
 
     return f"""
-<article class="case" data-verdict="{html.escape(v)}" style="--vc:{color};">
+<article class="case" data-verdict="{html.escape(v)}" data-num="{idx}" style="--vc:{color};">
   <header class="case-h">
+    <span class="case-num">#{idx:02d}</span>
     <span class="verdict" style="background:{color};">{html.escape(v)}</span>
     <strong class="cid">{html.escape(r.get("case_id", "?"))}</strong>
   </header>
@@ -240,13 +255,15 @@ def render(results: list[dict], run_file: Path) -> str:
 </header>
 """)
 
+    n = 0
     for path in by_path:
         rows = by_path[path]
         if not rows:
             continue
         parts.append(f'<section class="path-block" data-path="{html.escape(path)}"><h2>{html.escape(path)} <span class="n">({len(rows)} 条)</span></h2>')
         for r in rows:
-            parts.append(_render_case(r))
+            n += 1
+            parts.append(_render_case(r, n))
         parts.append('</section>')
 
     parts.append(_FOOTER)
@@ -266,11 +283,15 @@ _HEADER = """<!DOCTYPE html>
   :root {
     --bg: #f8fafc; --paper: #ffffff; --text: #0f172a; --muted: #64748b;
     --line: #e2e8f0; --soft: #f1f5f9; --warn-bg: #fef3c7; --warn-border: #f59e0b;
-    --ai-bg: #dbeafe; --ai-fg: #1e40af;
-    --obj-bg: #ede9fe; --obj-fg: #5b21b6;
-    --sens-bg: #fee2e2; --sens-fg: #991b1b;
-    --pat-bg: #fee2e2; --pat-fg: #991b1b;
-    --rmk-bg: #fef3c7; --rmk-fg: #92400e;
+    --ai-bg: #dbeafe;    --ai-fg: #1e40af;     /* 蓝:ai_scene_tags 主题 */
+    --obj-bg: #ede9fe;   --obj-fg: #5b21b6;    /* 紫:salient_objects 主体 */
+    --scene-bg: #d1fae5; --scene-fg: #065f46;  /* 绿:scene 场景 */
+    --act-bg: #ffedd5;   --act-fg: #9a3412;    /* 橙:activity 活动 */
+    --event-bg: #fce7f3; --event-fg: #9d174d;  /* 粉:event_hint 事件 */
+    --anchor-bg: #ccfbf1; --anchor-fg: #115e59; /* 青:meaning_anchors 锚点 */
+    --sens-bg: #fee2e2;  --sens-fg: #991b1b;   /* 红:sensitive 敏感 */
+    --pat-bg: #fee2e2;   --pat-fg: #991b1b;
+    --rmk-bg: #fef3c7;   --rmk-fg: #92400e;
   }
   * { box-sizing: border-box; }
   body { margin: 0; padding: 28px 36px; background: var(--bg); color: var(--text);
@@ -309,7 +330,11 @@ _HEADER = """<!DOCTYPE html>
                  border-top: 1px solid var(--line); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
                  padding: 14px 18px; margin-bottom: 14px; border-radius: 6px;
                  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
-  .case-h { display: flex; gap: 14px; align-items: center; margin-bottom: 6px; }
+  .case-h { display: flex; gap: 12px; align-items: center; margin-bottom: 6px; }
+  .case-h .case-num { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 20px;
+                      font-weight: 700; color: #94a3b8; min-width: 48px;
+                      background: var(--soft); padding: 2px 10px; border-radius: 6px;
+                      letter-spacing: -0.5px; }
   .case-h .verdict { padding: 3px 10px; border-radius: 4px; color: white; font-size: 12px;
                      font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
   .case-h .cid { font-size: 17px; color: #0f172a; }
@@ -350,11 +375,13 @@ _HEADER = """<!DOCTYPE html>
   ul.tags .tag-group .tg-lbl { color: var(--muted); font-size: 12px; margin-right: 4px; }
   ul.tags .t { display: inline-block; padding: 2px 8px; border-radius: 4px;
                margin: 0 2px 0 0; font-size: 13px; font-weight: 500; }
-  ul.tags .t-ai { background: var(--ai-bg); color: var(--ai-fg); }
-  ul.tags .t-obj { background: var(--obj-bg); color: var(--obj-fg); }
-  ul.tags .tag-meta { color: var(--muted); font-size: 13px; }
-  ul.tags .tag-meta em { color: #334155; font-style: normal; }
-  ul.tags .sens { background: var(--sens-bg); color: var(--sens-fg); padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+  ul.tags .t-ai      { background: var(--ai-bg);     color: var(--ai-fg); }
+  ul.tags .t-obj     { background: var(--obj-bg);    color: var(--obj-fg); }
+  ul.tags .t-scene   { background: var(--scene-bg);  color: var(--scene-fg); }
+  ul.tags .t-act     { background: var(--act-bg);    color: var(--act-fg); }
+  ul.tags .t-event   { background: var(--event-bg);  color: var(--event-fg); }
+  ul.tags .t-anchor  { background: var(--anchor-bg); color: var(--anchor-fg); }
+  ul.tags .t-sens    { background: var(--sens-bg);   color: var(--sens-fg); font-weight: 700; }
   ul.tags .narr { color: #475569; font-style: italic; font-size: 13px; }
 
   /* 后端归因区(折叠后内容) */
